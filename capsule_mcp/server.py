@@ -3,14 +3,16 @@
 Exposes common Capsule CRM operations as Model Context Protocol (MCP) tools.
 
 Run locally:
-    uvicorn capsule_mcp.server:mcp --reload --port 8000
+    uvicorn capsule_mcp.server:app --reload --port 8000
 """
 
 import os
 from typing import Any, Dict, List, Optional
 
 import httpx
+from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.auth import BearerTokenAuth
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -71,6 +73,9 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # MCP Server
 # ---------------------------------------------------------------------------
 
+app = FastAPI()
+
+# Create the MCP server
 mcp = FastMCP(
     name="Capsule CRM MCP",
     description=(
@@ -79,7 +84,7 @@ mcp = FastMCP(
         "assistants can read and update your pipeline in a secure, auditable "
         "way."
     ),
-    auth="bearer-token",
+    auth=BearerTokenAuth(),
 )
 
 # ---------------------------------------------------------------------------
@@ -148,6 +153,9 @@ async def list_open_opportunities(
     }
     return await capsule_request("GET", "opportunities", params=params)
 
+# Mount the MCP server at /mcp
+app.mount("/mcp", mcp.http_app())
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -156,7 +164,7 @@ if __name__ == "__main__":
     import uvicorn
     
     uvicorn.run(
-        "capsule_mcp.server:mcp",
+        "capsule_mcp.server:app",
         host="0.0.0.0",
         port=int(os.getenv("PORT", "8000")),
         reload=True,

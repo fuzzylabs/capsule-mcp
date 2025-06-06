@@ -1,99 +1,133 @@
 # Capsule CRM MCP Server
 
-A minimal **Model Context Protocol** server that exposes Capsule CRM endpoints
-as AI-accessible tools.
+A Model Control Protocol (MCP) server for Capsule CRM, allowing AI assistants to interact with your Capsule CRM data.
+
+## Features
+
+- List and search contacts
+- Create new contacts
+- Add notes to contacts
+- List open opportunities
+- Secure API token management
+- Environment-based configuration
 
 ## Prerequisites
 
-- Python 3.10 or later
-- A Capsule CRM account with API access
-- A personal access token from Capsule CRM
+- Python 3.8 or higher
+- A Capsule CRM account
+- A Capsule CRM API token
 
-## Quick Start
+## Installation
 
 1. Clone the repository:
    ```bash
-   git clone git@github.com/fuzzylabs/capsule-crm-mcp-server.git
+   git clone https://github.com/fuzzylabs/capsule-crm-mcp-server.git
    cd capsule-crm-mcp-server
    ```
 
 2. Create and activate a virtual environment:
    ```bash
-   # Using venv (recommended)
-   python -m venv .venv
-   source .venv/bin/activate  # On Unix/macOS
-   # or
-   .venv\Scripts\activate  # On Windows
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
    ```
 
-3. Install dependencies:
+3. Install the package in development mode:
    ```bash
-   pip install -U pip
-   pip install -r requirements.txt
-   # or install in development mode:
-   pip install -e .
+   # Install with development dependencies
+   pip install -e ".[dev]"
    ```
 
-4. Set up your Capsule CRM API token:
+4. Create a `.env` file in the project root:
    ```bash
-   # Create a .env file
-   echo "CAPSULE_API_TOKEN=your-token-here" > .env
-   ```
-   You can create a personal access token in Capsule CRM:
-   1. Go to My Preferences → API Authentication
-   2. Click "Create New Personal Access Token"
-   3. Copy the token and paste it in your `.env` file
-
-5. Start the server:
-   ```bash
-   uvicorn capsule_mcp.server:mcp --reload --port 8000
+   CAPSULE_API_TOKEN=your_api_token_here
    ```
 
-## Available Tools
+## Running the Server
 
-The server exposes the following Capsule CRM operations as MCP tools:
+Start the server with:
+```bash
+uvicorn capsule_mcp.server:app --reload
+```
 
-| Tool | Description |
-|------|-------------|
-| `list_contacts` | Get a paginated list of contacts |
-| `search_contacts` | Fuzzy search contacts by name, email, or organisation |
-| `create_person` | Create a new person contact |
-| `add_note` | Attach a note to a contact |
-| `list_open_opportunities` | List open sales opportunities |
+The server will be available at `http://localhost:8000`.
+
+## Testing
+
+The project includes a comprehensive test suite to ensure reliability and functionality. Tests are written using pytest and include both unit and integration tests.
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+
+# Run a specific test file
+pytest tests/test_server.py
+
+# Run a specific test
+pytest tests/test_server.py::test_list_contacts
+```
+
+### Test Coverage
+
+The test suite covers:
+- MCP schema validation
+- All MCP tools functionality
+- Error handling
+- API response validation
+- Input validation
+
+### Writing Tests
+
+When adding new features, please include corresponding tests. The test suite uses:
+- `pytest` for test framework
+- `pytest-asyncio` for async test support
+- `TestClient` from FastAPI for API testing
+- Mocking for external API calls
+
+Example test structure:
+```python
+def test_feature_name(client, mock_capsule_response):
+    """Test description."""
+    response = client.post(
+        "/mcp",
+        json={
+            "type": "tool",
+            "tool": "tool_name",
+            "args": {"arg1": "value1"},
+        },
+    )
+    assert response.status_code == 200
+    # Add more assertions as needed
+```
+
+### Development Setup
+
+For development work, install the package in development mode with all dependencies:
+```bash
+pip install -e ".[dev]"
+```
+
+This will install:
+- The package in editable mode
+- All runtime dependencies
+- Development dependencies (pytest, pytest-asyncio)
 
 ## Configuring MCP Clients
 
-### Cursor
-
-You can add this MCP server to Cursor in two ways:
-
-1. **Quick Add (Recommended)**
-   - Click the [Add to Cursor](add-to-cursor.html) button
-   - This will automatically open Cursor and add the server to your settings
-
-2. **Manual Setup**
-   - Open Cursor's settings:
-     - macOS: `Cmd + ,`
-     - Windows/Linux: `Ctrl + ,`
-   - Search for "MCP" in the settings search bar
-   - Under "MCP Servers", click "Add Server" and enter:
-     - Name: `Capsule CRM`
-     - URL: `http://localhost:8000/mcp`
-   - Click "Save" and restart Cursor
-
-You can now use Cursor to interact with your Capsule CRM data. Try asking questions like:
-- "List my open opportunities"
-- "Search for contacts with 'Acme' in their name"
-- "Create a new contact for John Smith at Acme Corp"
-
 ### Claude Desktop
 
-1. Locate your Claude Desktop configuration file:
+1. Edit the Claude Desktop configuration file:
    - macOS: `~/Library/Application Support/claude-desktop/config.json`
-   - Windows: `%APPDATA%\claude-desktop\config.json`
+   - Windows: `%APPDATA%\claude-desktop/config.json`
    - Linux: `~/.config/claude-desktop/config.json`
 
-2. Edit the configuration file to add the MCP server:
+2. Add the MCP server configuration:
    ```json
    {
      "mcpServers": [
@@ -105,83 +139,34 @@ You can now use Cursor to interact with your Capsule CRM data. Try asking questi
    }
    ```
 
-3. Save the file and restart Claude Desktop
+3. Restart Claude Desktop to apply the changes.
 
-You can now use Claude Desktop to interact with your Capsule CRM data. Try asking questions like:
-- "List my open opportunities"
-- "Search for contacts with 'Acme' in their name"
-- "Create a new contact for John Smith at Acme Corp"
+4. Try it out with prompts like:
+   - "List my open opportunities"
+   - "Search for contacts with 'john' in their name"
+   - "Add a note to contact ID 123"
 
-### VS Code Copilot Chat
+## API Documentation
 
-1. Open VS Code settings
-2. Search for "Copilot Chat: MCP Servers"
-3. Add a new server:
-   ```json
-   {
-     "name": "Capsule CRM",
-     "url": "http://localhost:8000/mcp"
-   }
-   ```
+Once the server is running, you can access the API documentation at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
-### Anthropic Console
+## Security Considerations
 
-1. Go to the Anthropic Console
-2. Click on "Settings"
-3. Under "MCP Servers", add:
-   ```
-   http://localhost:8000/mcp
-   ```
+- The API token is stored in environment variables
+- All API requests are made over HTTPS
+- Input validation is performed on all requests
+- Rate limiting is implemented to prevent abuse
 
-### Claude API
+## Contributing
 
-When making API calls, include the MCP server URL in your request:
-```python
-import anthropic
-
-client = anthropic.Anthropic()
-response = client.messages.create(
-    model="claude-3-opus-20240229",
-    max_tokens=1000,
-    messages=[{"role": "user", "content": "List my open opportunities"}],
-    mcp_servers=["http://localhost:8000/mcp"]
-)
-```
-
-## Development
-
-### Installing Development Dependencies
-
-```bash
-pip install -e ".[dev]"
-```
-
-This installs additional tools for development:
-- `black` for code formatting
-- `isort` for import sorting
-- `pytest` for testing
-- `ruff` for linting
-
-### Running Tests
-
-```bash
-pytest
-```
-
-### Code Style
-
-The project uses:
-- Black for code formatting
-- isort for import sorting
-- ruff for linting
-
-To format your code:
-```bash
-black .
-isort .
-ruff check .
-```
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-MIT – see `LICENSE`.
+This project is licensed under the MIT License - see the LICENSE file for details.
