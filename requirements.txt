@@ -1,4 +1,4 @@
-fastmcp>=2.1.0
+fastmcp>=2.2.5
 httpx
 python-dotenv
 uvicorn[standard]
