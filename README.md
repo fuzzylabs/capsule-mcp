@@ -13,7 +13,7 @@ as AI-accessible tools.
 
 1. Clone the repository:
    ```bash
-   git clone git@github.com:fuzzylabs/capsule-crm-mcp-server.git
+   git clone git@github.com/fuzzylabs/capsule-crm-mcp-server.git
    cd capsule-crm-mcp-server
    ```
 
@@ -62,6 +62,55 @@ The server exposes the following Capsule CRM operations as MCP tools:
 | `list_open_opportunities` | List open sales opportunities |
 
 ## Configuring MCP Clients
+
+### Cursor
+
+You can add this MCP server to Cursor in two ways:
+
+1. **Quick Add (Recommended)**
+   - Click the [Add to Cursor](add-to-cursor.html) button
+   - This will automatically open Cursor and add the server to your settings
+
+2. **Manual Setup**
+   - Open Cursor's settings:
+     - macOS: `Cmd + ,`
+     - Windows/Linux: `Ctrl + ,`
+   - Search for "MCP" in the settings search bar
+   - Under "MCP Servers", click "Add Server" and enter:
+     - Name: `Capsule CRM`
+     - URL: `http://localhost:8000/mcp`
+   - Click "Save" and restart Cursor
+
+You can now use Cursor to interact with your Capsule CRM data. Try asking questions like:
+- "List my open opportunities"
+- "Search for contacts with 'Acme' in their name"
+- "Create a new contact for John Smith at Acme Corp"
+
+### Claude Desktop
+
+1. Locate your Claude Desktop configuration file:
+   - macOS: `~/Library/Application Support/claude-desktop/config.json`
+   - Windows: `%APPDATA%\claude-desktop\config.json`
+   - Linux: `~/.config/claude-desktop/config.json`
+
+2. Edit the configuration file to add the MCP server:
+   ```json
+   {
+     "mcpServers": [
+       {
+         "name": "Capsule CRM",
+         "url": "http://localhost:8000/mcp"
+       }
+     ]
+   }
+   ```
+
+3. Save the file and restart Claude Desktop
+
+You can now use Claude Desktop to interact with your Capsule CRM data. Try asking questions like:
+- "List my open opportunities"
+- "Search for contacts with 'Acme' in their name"
+- "Create a new contact for John Smith at Acme Corp"
 
 ### VS Code Copilot Chat
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Capsule CRM to Cursor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007AFF;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 20px 0;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .instructions {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Capsule CRM to Cursor</h1>
+    
+    <p>Click the button below to add the Capsule CRM MCP server to your Cursor settings:</p>
+    
+    <button class="button" onclick="addToCursor()">Add to Cursor</button>
+    
+    <div class="instructions">
+        <h2>Manual Setup</h2>
+        <p>If the button doesn't work, you can add the server manually:</p>
+        <ol>
+            <li>Open Cursor's settings (<code>Cmd + ,</code> on macOS, <code>Ctrl + ,</code> on Windows/Linux)</li>
+            <li>Search for "MCP" in the settings search bar</li>
+            <li>Under "MCP Servers", click "Add Server" and enter:
+                <ul>
+                    <li>Name: <code>Capsule CRM</code></li>
+                    <li>URL: <code>http://localhost:8000/mcp</code></li>
+                </ul>
+            </li>
+            <li>Click "Save" and restart Cursor</li>
+        </ol>
+    </div>
+
+    <script>
+        function addToCursor() {
+            const serverConfig = {
+                name: "Capsule CRM",
+                url: "http://localhost:8000/mcp"
+            };
+            
+            // Create a custom protocol URL that Cursor will handle
+            const cursorUrl = `cursor://mcp/add?${encodeURIComponent(JSON.stringify(serverConfig))}`;
+            
+            // Try to open the URL
+            window.location.href = cursorUrl;
+            
+            // Show a fallback message if the protocol handler doesn't work
+            setTimeout(() => {
+                alert("If Cursor didn't open automatically, please follow the manual setup instructions below.");
+            }, 1000);
+        }
+    </script>
+</body>
+</html> 
