@@ -167,9 +167,14 @@ def test_missing_required_args(client):
     assert response.status_code == 400
 
 def test_print_routes(client):
-    print('ROUTES:', [(route.path, list(route.methods)) for route in client.app.routes if hasattr(route, 'methods')])
+    """Ensure that the MCP endpoint is registered."""
+    routes = [route.path for route in client.app.routes if hasattr(route, "path")]
+    assert "/mcp" in routes
 
 def test_debug_post_to_mcp(client):
+    """Verify the MCP schema can be retrieved."""
     response = client.post("/mcp", json={"type": "schema"})
-    print("DEBUG /mcp status:", response.status_code)
-    print("DEBUG /mcp response:", response.text) 
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "tools" in data
