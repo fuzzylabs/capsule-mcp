@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: capsule-mcp
+    runtime: python3
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn capsule_mcp.server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CAPSULE_API_TOKEN
+        sync: false
+    healthCheckPath: /mcp/
+    plan: free
