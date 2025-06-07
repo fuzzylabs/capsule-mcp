@@ -60,7 +60,9 @@ pip install -e .
 
 ## Running the server
 
-Start the server with Uvicorn:
+**For Claude Desktop:** No manual server startup needed - Claude Desktop will launch the server automatically.
+
+**For standalone HTTP testing:** Start the server with Uvicorn:
 
 ```bash
 uvicorn capsule_mcp.server:app --reload
@@ -80,27 +82,7 @@ Add the server to your Claude Desktop configuration file (`claude_desktop_config
 {
   "mcpServers": {
     "capsule-crm": {
-      "command": "uvicorn",
-      "args": [
-        "capsule_mcp.server:app",
-        "--host", "0.0.0.0",
-        "--port", "8000"
-      ],
-      "env": {
-        "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
-      }
-    }
-  }
-}
-```
-
-Alternatively, if you prefer to run the server manually and connect via HTTP:
-
-```json
-{
-  "mcpServers": {
-    "capsule-crm": {
-      "command": "python",
+      "command": "/usr/bin/python3",
       "args": [
         "/absolute/path/to/your/capsule-crm-mcp-server/capsule_mcp/server.py"
       ],
@@ -111,6 +93,11 @@ Alternatively, if you prefer to run the server manually and connect via HTTP:
   }
 }
 ```
+
+**Note:** You may need to adjust the Python path:
+- macOS/Linux: Try `/usr/bin/python3`, `/usr/local/bin/python3`, or run `which python3` to find your Python path
+- Windows: Try `C:\\Python311\\python.exe` or `python.exe` 
+- If using pyenv: Use the full path from `pyenv which python`
 
 **Important:** Replace `/absolute/path/to/your/capsule-crm-mcp-server/` with the actual path to this repository on your system.
 

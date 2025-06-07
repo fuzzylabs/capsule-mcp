@@ -129,13 +129,24 @@ async def list_contacts(
     page: int = 1,
     per_page: int = 50,
     archived: bool = False,
+    since: str = None,
 ) -> Dict[str, Any]:
-    """Return a paginated list of contacts."""
+    """Return a paginated list of contacts.
+    
+    Args:
+        page: Page number (default: 1)
+        per_page: Number of contacts per page (default: 50, max: 100)
+        archived: Include archived contacts (default: false)
+        since: Only return contacts modified since this date (ISO8601 format, e.g. '2024-01-01T00:00:00Z')
+    """
     params = {
         "page": page,
         "perPage": per_page,
         "archived": str(archived).lower(),
     }
+    if since:
+        params["since"] = since
+    
     return await capsule_request("GET", "parties", params=params)
 
 @mcp.tool
@@ -147,6 +158,33 @@ async def search_contacts(
     """Fuzzy search contacts by name, email, or organisation."""
     params = {"q": keyword, "page": page, "perPage": per_page}
     return await capsule_request("GET", "parties/search", params=params)
+
+@mcp.tool
+async def list_recent_contacts(
+    page: int = 1,
+    per_page: int = 50,
+) -> Dict[str, Any]:
+    """Return contacts sorted by most recently contacted/updated."""
+    filter_data = {
+        "filter": {
+            "conditions": [
+                {
+                    "field": "type",
+                    "operator": "is",
+                    "value": "person"
+                }
+            ],
+            "orderBy": [
+                {
+                    "field": "lastContactedOn",
+                    "direction": "descending"
+                }
+            ]
+        },
+        "page": page,
+        "perPage": per_page
+    }
+    return await capsule_request("POST", "parties/filters/results", json=filter_data)
 
 
 @mcp.tool
@@ -168,11 +206,5 @@ async def list_open_opportunities(
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    import uvicorn
-    
-    uvicorn.run(
-        "capsule_mcp.server:app",
-        host="0.0.0.0",
-        port=int(os.getenv("PORT", "8000")),
-        reload=True,
-    )
+    # Run as MCP server via stdio
+    mcp.run("stdio")
