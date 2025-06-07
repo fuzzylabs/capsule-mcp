@@ -32,7 +32,7 @@ Start the server with Uvicorn:
 uvicorn capsule_mcp.server:app --reload
 ```
 
-The API will be available at `http://localhost:8000/mcp`.
+The API will be available at `http://localhost:8000/mcp/`.
 
 ## Using with Claude Desktop
 
@@ -41,7 +41,7 @@ Add the server to your Claude Desktop configuration file (`config.json`):
 ```json
 {
   "mcpServers": [
-    {"name": "Capsule CRM", "url": "http://localhost:8000/mcp"}
+    {"name": "Capsule CRM", "url": "http://localhost:8000/mcp/"}
   ]
 }
 ```

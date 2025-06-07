@@ -29,7 +29,7 @@ def mock_capsule_response(monkeypatch):
 
 def test_mcp_schema(client):
     """Test that the MCP schema endpoint returns the correct tools."""
-    response = client.post("/mcp", json={"type": "schema"})
+    response = client.post("/mcp/", json={"type": "schema"})
     assert response.status_code == 200
     
     data = response.json()
@@ -48,7 +48,7 @@ def test_mcp_schema(client):
 def test_list_contacts(client, mock_capsule_response):
     """Test the list_contacts tool."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "tool",
             "tool": "list_contacts",
@@ -65,7 +65,7 @@ def test_list_contacts(client, mock_capsule_response):
 def test_search_contacts(client, mock_capsule_response):
     """Test the search_contacts tool."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "tool",
             "tool": "search_contacts",
@@ -81,7 +81,7 @@ def test_search_contacts(client, mock_capsule_response):
 def test_list_open_opportunities(client, mock_capsule_response):
     """Test the list_open_opportunities tool."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "tool",
             "tool": "list_open_opportunities",
@@ -93,7 +93,7 @@ def test_list_open_opportunities(client, mock_capsule_response):
 def test_invalid_tool(client):
     """Test that an invalid tool name returns an error."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "tool",
             "tool": "invalid_tool",
@@ -105,7 +105,7 @@ def test_invalid_tool(client):
 def test_invalid_request_type(client):
     """Test that an invalid request type returns an error."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "invalid_type",
         },
@@ -115,7 +115,7 @@ def test_invalid_request_type(client):
 def test_missing_required_args(client):
     """Test that missing required arguments returns an error."""
     response = client.post(
-        "/mcp",
+        "/mcp/",
         json={
             "type": "tool",
             "tool": "search_contacts",
@@ -127,12 +127,17 @@ def test_missing_required_args(client):
 def test_print_routes(client):
     """Ensure that the MCP endpoint is registered."""
     routes = [route.path for route in client.app.routes if hasattr(route, "path")]
-    assert "/mcp" in routes
+    assert "/mcp/" in routes
 
 def test_debug_post_to_mcp(client):
     """Verify the MCP schema can be retrieved."""
-    response = client.post("/mcp", json={"type": "schema"})
+    response = client.post("/mcp/", json={"type": "schema"})
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, dict)
     assert "tools" in data
+
+def test_mcp_redirect(client):
+    """Requests to /mcp should redirect to /mcp/."""
+    response = client.post("/mcp", json={"type": "schema"}, follow_redirects=True)
+    assert response.status_code == 200
