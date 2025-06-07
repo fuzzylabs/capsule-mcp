@@ -164,4 +164,12 @@ def test_missing_required_args(client):
             "args": {},
         },
     )
-    assert response.status_code == 400 
+    assert response.status_code == 400
+
+def test_print_routes(client):
+    print('ROUTES:', [(route.path, list(route.methods)) for route in client.app.routes if hasattr(route, 'methods')])
+
+def test_debug_post_to_mcp(client):
+    response = client.post("/mcp", json={"type": "schema"})
+    print("DEBUG /mcp status:", response.status_code)
+    print("DEBUG /mcp response:", response.text) 

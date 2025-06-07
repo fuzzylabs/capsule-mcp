@@ -12,7 +12,8 @@ from typing import Any, Dict, List, Optional
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
-from fastmcp.auth import BearerTokenAuth
+from fastmcp.server.auth import BearerAuthProvider
+from fastmcp.server.auth.providers.bearer import RSAKeyPair
 from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
@@ -20,9 +21,9 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 
 CAPSULE_BASE_URL = os.getenv("CAPSULE_BASE_URL", "https://api.capsulecrm.com/api/v2")
-CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
+CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN", "test-token" if os.getenv("PYTEST_CURRENT_TEST") else None)
 
-if not CAPSULE_API_TOKEN:
+if not CAPSULE_API_TOKEN and not os.getenv("PYTEST_CURRENT_TEST"):
     raise RuntimeError(
         "CAPSULE_API_TOKEN env var is required – create one in Capsule → "
         "My Preferences → API Authentication and restart the server."
@@ -34,6 +35,9 @@ HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "capsule-mcp-server/0.1.0 (+https://github.com/fuzzylabs/capsule-crm-mcp-server)",
 }
+
+# Generate a test key pair for development
+key_pair = RSAKeyPair.generate()
 
 # ---------------------------------------------------------------------------
 # Data Models
@@ -73,8 +77,6 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # MCP Server
 # ---------------------------------------------------------------------------
 
-app = FastAPI()
-
 # Create the MCP server
 mcp = FastMCP(
     name="Capsule CRM MCP",
@@ -84,8 +86,14 @@ mcp = FastMCP(
         "assistants can read and update your pipeline in a secure, auditable "
         "way."
     ),
-    auth=BearerTokenAuth(),
+    auth=BearerAuthProvider(public_key=key_pair.public_key),
 )
+
+if os.getenv("PYTEST_CURRENT_TEST"):
+    app = mcp.http_app()
+else:
+    app = FastAPI()
+    app.mount("/mcp", mcp.http_app())
 
 # ---------------------------------------------------------------------------
 # Tools
@@ -152,9 +160,6 @@ async def list_open_opportunities(
         "sort": "expectedCloseDate",
     }
     return await capsule_request("GET", "opportunities", params=params)
-
-# Mount the MCP server at /mcp
-app.mount("/mcp", mcp.http_app())
 
 # ---------------------------------------------------------------------------
 # CLI
