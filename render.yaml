@@ -7,5 +7,7 @@ services:
     envVars:
       - key: CAPSULE_API_TOKEN
         sync: false
+      - key: MCP_API_KEY
+        sync: false
     healthCheckPath: /mcp/
     plan: free

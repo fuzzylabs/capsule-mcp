@@ -150,9 +150,9 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 
 ---
 
-## Render Deployment (Remote HTTP Access)
+## Render Deployment (Secure Remote HTTP Access)
 
-Want to deploy the MCP server remotely so multiple users can access it via HTTP? Deploy to Render for easy cloud hosting.
+Want to deploy the MCP server remotely so multiple users can access it via HTTP? Deploy to Render for easy cloud hosting with API key authentication.
 
 ### Quick Deploy
 
@@ -173,8 +173,26 @@ Want to deploy the MCP server remotely so multiple users can access it via HTTP?
 
 5. **Set environment variables** in Render dashboard:
    - `CAPSULE_API_TOKEN`: Your Capsule CRM API token
+   - `MCP_API_KEY`: A secure random API key for authentication (see generation instructions below)
 
 6. **Deploy** - Render will automatically build and deploy your service
+
+### Generating a Secure API Key
+
+Generate a secure random API key for the `MCP_API_KEY` environment variable:
+
+```bash
+# Using Python
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Using OpenSSL  
+openssl rand -base64 32
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+⚠️ **Important**: Store this API key securely - you'll need it to configure your MCP clients.
 
 ### Using Your Deployed Server
 
@@ -190,6 +208,7 @@ Once deployed, you'll get a URL like `https://your-service.onrender.com`. Config
         "-X", "POST",
         "https://your-service.onrender.com/mcp/",
         "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer YOUR_MCP_API_KEY_HERE",
         "-d", "@-"
       ]
     }
@@ -197,16 +216,22 @@ Once deployed, you'll get a URL like `https://your-service.onrender.com`. Config
 }
 ```
 
+Replace `YOUR_MCP_API_KEY_HERE` with the API key you generated and set in Render.
+
+🔒 **Security Note**: The API key authentication is only enforced when the `MCP_API_KEY` environment variable is set. If no API key is configured, the server will accept unauthenticated requests (useful for local development).
+
 **Direct HTTP Access:**
 ```bash
 # List available tools
 curl -X POST https://your-service.onrender.com/mcp/ \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_MCP_API_KEY_HERE" \
   -d '{"jsonrpc": "2.0", "method": "tools/list", "id": 1}'
 
 # List contacts
 curl -X POST https://your-service.onrender.com/mcp/ \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_MCP_API_KEY_HERE" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",

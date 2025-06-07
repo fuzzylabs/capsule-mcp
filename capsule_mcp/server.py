@@ -14,7 +14,7 @@ from typing import Any, Dict
 from dotenv import load_dotenv
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
 # Auth imports removed since auth is disabled
@@ -36,6 +36,9 @@ CAPSULE_BASE_URL = os.getenv("CAPSULE_BASE_URL", "https://api.capsulecrm.com/api
 # is set while requests are executed, so we lazily default to ``"test-token"``
 # inside ``capsule_request`` rather than during import.
 CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
+
+# MCP API key for authenticating requests to the MCP endpoints
+MCP_API_KEY = os.getenv("MCP_API_KEY")
 
 # Auth key pair generation removed since auth is disabled
 
@@ -97,6 +100,47 @@ mcp = FastMCP(
 
 
 # ---------------------------------------------------------------------------
+# Authentication
+# ---------------------------------------------------------------------------
+
+async def authenticate_request(request: Request):
+    """Authenticate requests to MCP endpoints using API key."""
+    # Skip authentication for tests
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return
+    
+    # Skip authentication if no API key is configured
+    if not MCP_API_KEY:
+        return
+    
+    # Only authenticate /mcp/ endpoints
+    if not request.url.path.startswith("/mcp"):
+        return
+    
+    # Check for Authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing Authorization header. Use 'Authorization: Bearer <api_key>'"
+        )
+    
+    # Validate Bearer token format
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Authorization header format. Use 'Authorization: Bearer <api_key>'"
+        )
+    
+    # Extract and validate API key
+    provided_key = auth_header[7:]  # Remove "Bearer " prefix
+    if provided_key != MCP_API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key"
+        )
+
+# ---------------------------------------------------------------------------
 # Application
 # ---------------------------------------------------------------------------
 
@@ -107,6 +151,14 @@ def create_app() -> FastAPI:
     mcp_app = mcp.http_app(path="/")
 
     app = FastAPI(lifespan=mcp_app.lifespan)
+    
+    # Add authentication middleware
+    @app.middleware("http")
+    async def auth_middleware(request: Request, call_next):
+        await authenticate_request(request)
+        response = await call_next(request)
+        return response
+    
     app.mount("/mcp", mcp_app)
 
     @app.api_route("/mcp", methods=["GET", "POST"])
