@@ -1,6 +1,6 @@
-# Capsule CRM + Claude Desktop Integration
+# Capsule CRM MCP Server
 
-> **Connect your Capsule CRM data directly to Claude Desktop** — Access contacts, opportunities, support cases, and more through natural language queries, with complete read-only security.
+> **Connect your Capsule CRM data to AI assistants** — Access contacts, opportunities, support cases, and more through natural language queries, with complete read-only security.
 
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io) [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org) [![Capsule CRM API v2](https://img.shields.io/badge/Capsule%20CRM-API%20v2-orange)](https://developer.capsulecrm.com)
 
@@ -8,7 +8,7 @@
 
 ## What This Does
 
-Transform how you work with your Capsule CRM data by asking Claude Desktop natural language questions like:
+Transform how you work with your Capsule CRM data by asking AI assistants natural language questions like:
 
 - *"Show me my recent contacts"*
 - *"What opportunities are closing this month?"* 
@@ -17,7 +17,7 @@ Transform how you work with your Capsule CRM data by asking Claude Desktop natur
 - *"What products do we sell in the UK?"*
 
 **🔒 Read-Only & Secure** — No write access to your CRM data  
-**🚀 Instant Setup** — Works with Claude Desktop in minutes  
+**🚀 Instant Setup** — Works with any MCP-compatible AI assistant  
 **📊 Complete Coverage** — Access contacts, sales, support, tasks, projects & more
 
 ## Quick Start
@@ -38,7 +38,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
-### 3. Connect to Claude Desktop
+### 3. Connect to Your AI Assistant
+
+#### Claude Desktop
 
 Add this to your Claude Desktop config file:
 
@@ -62,6 +64,28 @@ Add this to your Claude Desktop config file:
 }
 ```
 
+#### Cursor
+
+Add this to your Cursor settings (`Settings > MCP Servers`):
+
+```json
+{
+  "capsule-crm": {
+    "command": "/usr/bin/python3",
+    "args": [
+      "/path/to/your/capsule-mcp/capsule_mcp/server.py"
+    ],
+    "env": {
+      "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
+    }
+  }
+}
+```
+
+#### Other MCP Clients
+
+This server is compatible with any MCP client. Refer to your client's documentation for MCP server configuration.
+
 **💡 Python Path Help:**
 - **Find your Python:** Run `which python3` in terminal
 - **Using pyenv:** Use full path from `pyenv which python`
@@ -69,7 +93,7 @@ Add this to your Claude Desktop config file:
 
 ### 4. Start Using
 
-1. **Restart Claude Desktop**
+1. **Restart your AI assistant**
 2. **Start asking questions!**
 
 Try these example queries:
@@ -111,8 +135,8 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 - Verify your Capsule API token is correct
 - Check the token has appropriate permissions in Capsule CRM
 
-**Claude Desktop not showing MCP tools**
-- Restart Claude Desktop after config changes
+**MCP tools not showing in your AI assistant**
+- Restart your AI assistant after config changes
 - Check the config file syntax is valid JSON
 - Verify file paths are absolute, not relative
 
