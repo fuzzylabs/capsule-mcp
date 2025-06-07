@@ -14,7 +14,8 @@ from typing import Any, Dict
 from dotenv import load_dotenv
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
 from fastmcp.server.auth.providers.bearer import RSAKeyPair
@@ -101,7 +102,26 @@ mcp = FastMCP(
 # mirrors the real server behaviour during tests so that request paths remain
 # consistent.
 app = FastAPI()
-app.mount("/mcp/", mcp.http_app())
+
+# Mount the MCP app without the trailing slash so that ``/mcp/`` can be handled
+# by a normal route which forwards requests to the mounted application.  This
+# mirrors the behaviour of the deployed server and avoids 404 errors when the
+# trailing slash is included in requests.
+mcp_app = mcp.http_app()
+app.mount("/mcp", mcp_app)
+
+
+@app.api_route("/mcp", methods=["GET", "POST"])
+async def mcp_redirect() -> RedirectResponse:
+    """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
+    return RedirectResponse(url="/mcp/", status_code=307)
+
+
+@app.api_route("/mcp/", methods=["GET", "POST"])
+async def mcp_root(request: Request) -> Response:
+    """Forward requests from ``/mcp/`` to the mounted MCP application."""
+    request.scope["path"] = "/"
+    return await mcp_app(request.scope, request.receive, request.send)
 
 # ---------------------------------------------------------------------------
 # Tools
