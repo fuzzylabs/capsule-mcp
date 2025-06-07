@@ -62,7 +62,12 @@ Test the schema endpoint
 ```bash
 curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
-  -d '{"type": "schema"}'
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "id": 1
+  }'
 ```
 
 Test listing contacts
@@ -71,11 +76,12 @@ curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
-    "type": "tool",
-    "tool": "list_contacts",
-    "args": {
-      "page": 1,
-      "per_page": 10
-    }
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "list_contacts",
+      "arguments": {"page": 1, "per_page": 10}
+    },
+    "id": 1
   }'
 ```
