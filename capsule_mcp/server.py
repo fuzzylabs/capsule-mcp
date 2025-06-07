@@ -92,11 +92,16 @@ mcp = FastMCP(
     auth=BearerAuthProvider(public_key=key_pair.public_key),
 )
 
-if os.getenv("PYTEST_CURRENT_TEST"):
-    app = mcp.http_app()
-else:
-    app = FastAPI()
-    app.mount("/mcp/", mcp.http_app())
+
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
+
+# Create a parent FastAPI application and mount the MCP app at ``/mcp/``.  This
+# mirrors the real server behaviour during tests so that request paths remain
+# consistent.
+app = FastAPI()
+app.mount("/mcp/", mcp.http_app())
 
 # ---------------------------------------------------------------------------
 # Tools
