@@ -150,6 +150,78 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 
 ---
 
+## Render Deployment (Remote HTTP Access)
+
+Want to deploy the MCP server remotely so multiple users can access it via HTTP? Deploy to Render for easy cloud hosting.
+
+### Quick Deploy
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/fuzzylabs/capsule-mcp)
+
+### Manual Deployment
+
+1. **Fork this repository** to your GitHub account
+
+2. **Create a Render account** at [render.com](https://render.com)
+
+3. **Create a new Web Service** and connect your GitHub fork
+
+4. **Configure the service:**
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn capsule_mcp.server:app --host 0.0.0.0 --port $PORT`
+   - **Plan:** Free (or choose a paid plan for better performance)
+
+5. **Set environment variables** in Render dashboard:
+   - `CAPSULE_API_TOKEN`: Your Capsule CRM API token
+
+6. **Deploy** - Render will automatically build and deploy your service
+
+### Using Your Deployed Server
+
+Once deployed, you'll get a URL like `https://your-service.onrender.com`. Configure your MCP clients to use:
+
+**Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "capsule-crm": {
+      "command": "curl",
+      "args": [
+        "-X", "POST",
+        "https://your-service.onrender.com/mcp/",
+        "-H", "Content-Type: application/json",
+        "-d", "@-"
+      ]
+    }
+  }
+}
+```
+
+**Direct HTTP Access:**
+```bash
+# List available tools
+curl -X POST https://your-service.onrender.com/mcp/ \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "tools/list", "id": 1}'
+
+# List contacts
+curl -X POST https://your-service.onrender.com/mcp/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "list_contacts",
+      "arguments": {"page": 1, "per_page": 10}
+    },
+    "id": 1
+  }'
+```
+
+**⚠️ Note on Free Tier:** Render's free tier spins down services after inactivity. First requests may take 30-60 seconds to wake up the service.
+
+---
+
 ## For Developers
 
 ### Development Setup
