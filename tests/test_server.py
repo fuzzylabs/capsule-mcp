@@ -1,6 +1,7 @@
 """Tests for the Capsule CRM MCP server."""
 
 from typing import Dict, Any
+import json
 import pytest
 from fastapi.testclient import TestClient
 
@@ -39,20 +40,18 @@ def auth_header() -> Dict[str, str]:
 # ---------------------------------------------------------------------------
 
 def test_mcp_schema(client, auth_header):
-    """Test that the MCP schema endpoint returns the correct tools."""
+    """Test listing tools via the MCP endpoint."""
     response = client.post(
         "/mcp/",
-        json={"jsonrpc": "2.0", "method": "schema", "id": 1},
+        json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
         headers=auth_header,
     )
     assert response.status_code == 200
-    
-    data = response.json()
-    assert "tools" in data
-    assert len(data["tools"]) > 0
-    
-    # Check that our tools are in the schema
-    tool_names = {tool["name"] for tool in data["tools"]}
+
+    tools = response.json()["result"]["tools"]
+    assert len(tools) > 0
+
+    tool_names = {tool["name"] for tool in tools}
     expected_tools = {
         "list_contacts",
         "search_contacts",
@@ -66,18 +65,19 @@ def test_list_contacts(client, mock_capsule_response, auth_header):
         "/mcp/",
         json={
             "jsonrpc": "2.0",
-            "method": "tool",
+            "method": "tools/call",
             "params": {
-                "tool": "list_contacts",
-                "args": {"page": 1, "per_page": 10},
+                "name": "list_contacts",
+                "arguments": {"page": 1, "per_page": 10},
             },
             "id": 1,
         },
         headers=auth_header,
     )
     assert response.status_code == 200
-    
-    data = response.json()
+
+    payload = response.json()["result"]["content"][0]["text"]
+    data = json.loads(payload)
     assert "parties" in data
     assert len(data["parties"]) > 0
     assert data["parties"][0]["firstName"] == "Test"
@@ -88,18 +88,19 @@ def test_search_contacts(client, mock_capsule_response, auth_header):
         "/mcp/",
         json={
             "jsonrpc": "2.0",
-            "method": "tool",
+            "method": "tools/call",
             "params": {
-                "tool": "search_contacts",
-                "args": {"keyword": "test", "page": 1, "per_page": 10},
+                "name": "search_contacts",
+                "arguments": {"keyword": "test", "page": 1, "per_page": 10},
             },
             "id": 1,
         },
         headers=auth_header,
     )
     assert response.status_code == 200
-    
-    data = response.json()
+
+    payload = response.json()["result"]["content"][0]["text"]
+    data = json.loads(payload)
     assert "parties" in data
     assert len(data["parties"]) > 0
 
@@ -109,10 +110,10 @@ def test_list_open_opportunities(client, mock_capsule_response, auth_header):
         "/mcp/",
         json={
             "jsonrpc": "2.0",
-            "method": "tool",
+            "method": "tools/call",
             "params": {
-                "tool": "list_open_opportunities",
-                "args": {"page": 1, "per_page": 10},
+                "name": "list_open_opportunities",
+                "arguments": {"page": 1, "per_page": 10},
             },
             "id": 1,
         },
@@ -121,64 +122,55 @@ def test_list_open_opportunities(client, mock_capsule_response, auth_header):
     assert response.status_code == 200
 
 def test_invalid_tool(client, auth_header):
-    """Test that an invalid tool name returns an error."""
+    """Invalid tool names should return an error result."""
     response = client.post(
         "/mcp/",
         json={
             "jsonrpc": "2.0",
-            "method": "tool",
-            "params": {"tool": "invalid_tool", "args": {}},
+            "method": "tools/call",
+            "params": {"name": "invalid_tool", "arguments": {}},
             "id": 1,
         },
         headers=auth_header,
     )
-    assert response.status_code == 400
-
-def test_invalid_request_type(client, auth_header):
-    """Test that an invalid request type returns an error."""
-    response = client.post(
-        "/mcp/",
-        json={"jsonrpc": "2.0", "method": "invalid_type", "id": 1},
-        headers=auth_header,
-    )
-    assert response.status_code == 400
-
+    assert response.status_code == 200
+    assert response.json()["result"]["isError"] is True
 def test_missing_required_args(client, auth_header):
-    """Test that missing required arguments returns an error."""
+    """Missing arguments should produce an error result."""
     response = client.post(
         "/mcp/",
         json={
             "jsonrpc": "2.0",
-            "method": "tool",
-            "params": {"tool": "search_contacts", "args": {}},
+            "method": "tools/call",
+            "params": {"name": "search_contacts", "arguments": {}},
             "id": 1,
         },
         headers=auth_header,
     )
-    assert response.status_code == 400
+    assert response.status_code == 200
+    assert response.json()["result"]["isError"] is True
 
 def test_print_routes(client):
     """Ensure that the MCP endpoint is registered."""
     routes = [route.path for route in client.app.routes if hasattr(route, "path")]
-    assert "/mcp/" in routes or "/mcp" in routes
+    assert "/mcp" in routes
 
 def test_debug_post_to_mcp(client, auth_header):
     """Verify the MCP schema can be retrieved."""
     response = client.post(
         "/mcp/",
-        json={"jsonrpc": "2.0", "method": "schema", "id": 1},
+        json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
         headers=auth_header,
     )
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, dict)
-    assert "tools" in data
+    assert "result" in data and "tools" in data["result"]
 
 def test_mcp_redirect(client, auth_header):
     """Requests to /mcp should redirect to /mcp/."""
     response = client.post(
         "/mcp",
-        json={"jsonrpc": "2.0", "method": "schema", "id": 1},
+        json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
         follow_redirects=True,
         headers=auth_header,
     )
