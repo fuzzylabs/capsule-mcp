@@ -14,6 +14,7 @@ dependencies = [
     "fastmcp>=2.2.5",
     "httpx>=0.25",
     "python-dotenv",
+    "fastapi>=0.68.0",
     "uvicorn[standard]",
     "pydantic>=2.0"
 ]
