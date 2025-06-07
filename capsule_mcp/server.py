@@ -9,12 +9,21 @@ Run locally:
 import os
 from typing import Any, Dict, List, Optional
 
+from dotenv import load_dotenv
+
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
 from fastmcp.server.auth.providers.bearer import RSAKeyPair
 from pydantic import BaseModel
+
+# ---------------------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------------------
+
+# Load variables from a .env file if present before reading any env vars
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Configuration
