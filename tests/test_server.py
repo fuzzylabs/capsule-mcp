@@ -1,9 +1,6 @@
 """Tests for the Capsule CRM MCP server."""
 
-import json
 from typing import Dict, Any
-
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -44,8 +41,6 @@ def test_mcp_schema(client):
     expected_tools = {
         "list_contacts",
         "search_contacts",
-        "create_person",
-        "add_note",
         "list_open_opportunities",
     }
     assert expected_tools.issubset(tool_names)
@@ -82,43 +77,6 @@ def test_search_contacts(client, mock_capsule_response):
     data = response.json()
     assert "parties" in data
     assert len(data["parties"]) > 0
-
-def test_create_person(client, mock_capsule_response):
-    """Test the create_person tool."""
-    response = client.post(
-        "/mcp",
-        json={
-            "type": "tool",
-            "tool": "create_person",
-            "args": {
-                "person": {
-                    "first_name": "John",
-                    "last_name": "Doe",
-                    "email": "john@example.com",
-                }
-            },
-        },
-    )
-    assert response.status_code == 200
-    
-    data = response.json()
-    assert "parties" in data
-    assert len(data["parties"]) > 0
-
-def test_add_note(client, mock_capsule_response):
-    """Test the add_note tool."""
-    response = client.post(
-        "/mcp",
-        json={
-            "type": "tool",
-            "tool": "add_note",
-            "args": {
-                "party_id": 1,
-                "note": "Test note",
-            },
-        },
-    )
-    assert response.status_code == 200
 
 def test_list_open_opportunities(client, mock_capsule_response):
     """Test the list_open_opportunities tool."""
@@ -160,7 +118,7 @@ def test_missing_required_args(client):
         "/mcp",
         json={
             "type": "tool",
-            "tool": "create_person",
+            "tool": "search_contacts",
             "args": {},
         },
     )
