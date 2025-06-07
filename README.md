@@ -1,82 +1,48 @@
-# Capsule CRM MCP Example
+# Capsule CRM + Claude Desktop Integration
 
-This repository contains a minimal [Model Context Protocol](https://github.com/antora) server exposing read only Capsule CRM tools.  It allows AI assistants such as Claude Desktop to list and search your Capsule data without giving write access.
+> **Connect your Capsule CRM data directly to Claude Desktop** — Access contacts, opportunities, support cases, and more through natural language queries, with complete read-only security.
 
-## Available Tools
+[![Model Context Protocol](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io) [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org) [![Capsule CRM API v2](https://img.shields.io/badge/Capsule%20CRM-API%20v2-orange)](https://developer.capsulecrm.com)
 
-The MCP server provides the following Capsule CRM tools:
+## What This Does
 
-### `list_contacts`
-Returns a paginated list of contacts from your Capsule CRM.
-- **Parameters:**
-  - `page` (optional): Page number, defaults to 1
-  - `per_page` (optional): Number of contacts per page, defaults to 50
-  - `archived` (optional): Include archived contacts, defaults to false
+Transform how you work with your Capsule CRM data by asking Claude Desktop natural language questions like:
 
-### `search_contacts` 
-Fuzzy search for contacts by name, email, or organisation.
-- **Parameters:**
-  - `keyword` (required): Search term to find contacts
-  - `page` (optional): Page number, defaults to 1  
-  - `per_page` (optional): Number of results per page, defaults to 50
+- *"Show me my recent contacts"*
+- *"What opportunities are closing this month?"* 
+- *"Find all support cases from last week"*
+- *"List tasks assigned to Sarah"*
+- *"What products do we sell in the UK?"*
 
-### `list_open_opportunities`
-Returns open sales opportunities ordered by expected close date.
-- **Parameters:**
-  - `page` (optional): Page number, defaults to 1
-  - `per_page` (optional): Number of opportunities per page, defaults to 50
+**🔒 Read-Only & Secure** — No write access to your CRM data  
+**🚀 Instant Setup** — Works with Claude Desktop in minutes  
+**📊 Complete Coverage** — Access contacts, sales, support, tasks, projects & more
 
-**Example queries you can ask Claude Desktop:**
-- "List my Capsule contacts"
-- "Search for contacts with email domain @example.com"
-- "Show me open opportunities closing this month"
-- "Find contacts named John"
+## Quick Start
 
-## Prerequisites
+### 1. Get Your Capsule API Token
+1. Log into your Capsule CRM account
+2. Go to **My Preferences → API Authentication**
+3. Create a new API token and copy it
 
-* Python 3.10+
-* A Capsule CRM API token (create one in Capsule under *My Preferences → API Authentication*)
-
-### Environment Setup
-
-**For Claude Desktop usage:** No `.env` file needed - the token is configured directly in `claude_desktop_config.json`.
-
-**For standalone development/testing:** Copy `.env.example` to `.env` and add your token:
+### 2. Install & Configure
 
 ```bash
-cp .env.example .env
-# edit .env and set CAPSULE_API_TOKEN=your_token_here
-```
-
-## Installation
-
-Create a virtual environment and install the package:
-
-```bash
+# Clone and install
+git clone https://github.com/fuzzylabs/capsule-crm-mcp-server.git
+cd capsule-crm-mcp-server
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
-## Running the server
+### 3. Connect to Claude Desktop
 
-**For Claude Desktop:** No manual server startup needed - Claude Desktop will launch the server automatically.
+Add this to your Claude Desktop config file:
 
-**For standalone HTTP testing:** Start the server with Uvicorn:
-
-```bash
-uvicorn capsule_mcp.server:app --reload
-```
-
-The API will be available at `http://localhost:8000/mcp/`.
-
-## Using with Claude Desktop
-
-Add the server to your Claude Desktop configuration file (`claude_desktop_config.json`):
-
-**Location:** 
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+**Config Location:**
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -84,7 +50,7 @@ Add the server to your Claude Desktop configuration file (`claude_desktop_config
     "capsule-crm": {
       "command": "/usr/bin/python3",
       "args": [
-        "/absolute/path/to/your/capsule-crm-mcp-server/capsule_mcp/server.py"
+        "/path/to/your/capsule-crm-mcp-server/capsule_mcp/server.py"
       ],
       "env": {
         "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
@@ -94,26 +60,92 @@ Add the server to your Claude Desktop configuration file (`claude_desktop_config
 }
 ```
 
-**Note:** You may need to adjust the Python path:
-- macOS/Linux: Try `/usr/bin/python3`, `/usr/local/bin/python3`, or run `which python3` to find your Python path
-- Windows: Try `C:\\Python311\\python.exe` or `python.exe` 
-- If using pyenv: Use the full path from `pyenv which python`
+**💡 Python Path Help:**
+- **Find your Python:** Run `which python3` in terminal
+- **Using pyenv:** Use full path from `pyenv which python`
+- **Windows:** Try `C:\Python311\python.exe`
 
-**Important:** Replace `/absolute/path/to/your/capsule-crm-mcp-server/` with the actual path to this repository on your system.
+### 4. Start Using
 
-Restart Claude Desktop and you can issue commands like "List my Capsule contacts".
+1. **Restart Claude Desktop**
+2. **Start asking questions!**
 
-## Testing
+Try these example queries:
+> *"List my Capsule contacts"*  
+> *"Show me open opportunities closing this month"*  
+> *"What support cases need attention?"*  
+> *"Find contacts from @example.com"*
 
-Run the test suite with `pytest`:
+## What You Can Access
 
+This MCP server provides **complete read-only access** to your Capsule CRM:
+
+| **Data Type** | **What You Can Do** |
+|---------------|-------------------|
+| **👥 Contacts** | List, search, view details, find recent activity |
+| **💼 Sales** | View opportunities, pipeline stages, sales forecasts |
+| **🎫 Support** | Access cases, search issues, track resolution |
+| **✅ Tasks** | View task lists, assignments, deadlines |
+| **📝 Timeline** | Read notes, emails, calls, meeting records |
+| **📋 Projects** | Access project data and status |
+| **🏷️ Organization** | View tags, users, custom fields, configuration |
+| **🛍️ Products** | Browse product catalog and categories |
+
+**➡️ [View Complete Tool Reference](TOOLS.md)**
+
+## Troubleshooting
+
+### Common Issues
+
+**"No module named 'capsule_mcp'"**
+- Make sure you're using the absolute path to the server.py file
+- Verify Python can find the installed packages: `pip list | grep fastmcp`
+
+**"spawn python ENOENT"**
+- Check your Python path is correct: `which python3`
+- Use the full path (e.g., `/usr/bin/python3` not just `python3`)
+
+**"Authentication failed"**
+- Verify your Capsule API token is correct
+- Check the token has appropriate permissions in Capsule CRM
+
+**Claude Desktop not showing MCP tools**
+- Restart Claude Desktop after config changes
+- Check the config file syntax is valid JSON
+- Verify file paths are absolute, not relative
+
+### Getting Help
+
+- **Issues & Bugs:** [GitHub Issues](https://github.com/fuzzylabs/capsule-crm-mcp-server/issues)
+- **Capsule API Docs:** [developer.capsulecrm.com](https://developer.capsulecrm.com)
+- **MCP Protocol:** [modelcontextprotocol.io](https://modelcontextprotocol.io)
+
+---
+
+## For Developers
+
+### Development Setup
+
+**Environment Variables (for development):**
+```bash
+cp .env.example .env
+# Edit .env and set CAPSULE_API_TOKEN=your_token_here
+```
+
+**Run Tests:**
 ```bash
 python -m pytest
 ```
 
-Manually test the server with `curl`
+**HTTP Server (for testing):**
+```bash
+uvicorn capsule_mcp.server:app --reload
+# Server available at http://localhost:8000/mcp/
+```
 
-Test the schema endpoint
+### API Testing
+
+Test the schema endpoint:
 ```bash
 curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
@@ -125,7 +157,7 @@ curl -X POST http://localhost:8000/mcp/ \
   }'
 ```
 
-Test listing contacts
+Test listing contacts:
 ```bash
 curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
@@ -140,3 +172,10 @@ curl -X POST http://localhost:8000/mcp/ \
     "id": 1
   }'
 ```
+
+### Architecture
+
+- **Server:** FastMCP framework with FastAPI backend
+- **Protocol:** Model Context Protocol (MCP) via stdio
+- **API:** Capsule CRM API v2 with read-only access
+- **Authentication:** Bearer token (OAuth2)
