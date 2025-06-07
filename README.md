@@ -66,7 +66,9 @@ Add this to your Claude Desktop config file:
 
 #### Cursor
 
-Add this to your Cursor settings (`Settings > MCP Servers`):
+**📋 Quick Setup:** Open [`add-to-cursor.html`](add-to-cursor.html) in your browser for step-by-step instructions.
+
+Or add this to your Cursor MCP settings:
 
 ```json
 {

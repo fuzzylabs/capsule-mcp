@@ -45,44 +45,76 @@
 <body>
     <h1>Add Capsule CRM to Cursor</h1>
     
-    <p>Click the button below to add the Capsule CRM MCP server to your Cursor settings:</p>
-    
-    <button class="button" onclick="addToCursor()">Add to Cursor</button>
+    <p>Follow these steps to add the Capsule CRM MCP server to your Cursor settings:</p>
     
     <div class="instructions">
-        <h2>Manual Setup</h2>
-        <p>If the button doesn't work, you can add the server manually:</p>
+        <h2>Setup Instructions</h2>
         <ol>
-            <li>Open Cursor's settings (<code>Cmd + ,</code> on macOS, <code>Ctrl + ,</code> on Windows/Linux)</li>
-            <li>Search for "MCP" in the settings search bar</li>
-            <li>Under "MCP Servers", click "Add Server" and enter:
+            <li><strong>First, install the MCP server:</strong>
+                <pre><code>git clone https://github.com/fuzzylabs/capsule-mcp.git
+cd capsule-mcp
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e .</code></pre>
+            </li>
+            <li><strong>Get your Capsule API token:</strong>
                 <ul>
-                    <li>Name: <code>Capsule CRM</code></li>
-                    <li>URL: <code>http://localhost:8000/mcp/</code></li>
+                    <li>Log into your Capsule CRM account</li>
+                    <li>Go to <strong>My Preferences → API Authentication</strong></li>
+                    <li>Create a new API token and copy it</li>
                 </ul>
             </li>
-            <li>Click "Save" and restart Cursor</li>
+            <li><strong>Configure Cursor:</strong>
+                <ul>
+                    <li>Open Cursor's settings (<code>Cmd + ,</code> on macOS, <code>Ctrl + ,</code> on Windows/Linux)</li>
+                    <li>Search for "MCP Servers" in the settings</li>
+                    <li>Add the following configuration:</li>
+                </ul>
+                <pre><code>{
+  "capsule-crm": {
+    "command": "/usr/bin/python3",
+    "args": [
+      "/path/to/your/capsule-mcp/capsule_mcp/server.py"
+    ],
+    "env": {
+      "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
+    }
+  }
+}</code></pre>
+            </li>
+            <li><strong>Update the paths:</strong>
+                <ul>
+                    <li>Replace <code>/usr/bin/python3</code> with your Python path (find it with <code>which python3</code>)</li>
+                    <li>Replace <code>/path/to/your/capsule-mcp/</code> with the actual path to your installation</li>
+                    <li>Replace <code>your_capsule_api_token_here</code> with your actual API token</li>
+                </ul>
+            </li>
+            <li><strong>Restart Cursor</strong> to activate the MCP server</li>
         </ol>
+        
+        <p><strong>💡 Tip:</strong> You can find your Python path by running <code>which python3</code> in your terminal, or use the full path from <code>pyenv which python</code> if using pyenv.</p>
     </div>
 
     <script>
-        function addToCursor() {
-            const serverConfig = {
-                name: "Capsule CRM",
-                url: "http://localhost:8000/mcp/"
-            };
-            
-            // Create a custom protocol URL that Cursor will handle
-            const cursorUrl = `cursor://mcp/add?${encodeURIComponent(JSON.stringify(serverConfig))}`;
-            
-            // Try to open the URL
-            window.location.href = cursorUrl;
-            
-            // Show a fallback message if the protocol handler doesn't work
-            setTimeout(() => {
-                alert("If Cursor didn't open automatically, please follow the manual setup instructions below.");
-            }, 1000);
-        }
+        // Add some basic styling for pre/code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                pre {
+                    background-color: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 4px;
+                    padding: 12px;
+                    overflow-x: auto;
+                    margin: 8px 0;
+                }
+                pre code {
+                    background-color: transparent;
+                    padding: 0;
+                }
+            `;
+            document.head.appendChild(style);
+        });
     </script>
 </body>
 </html> 
