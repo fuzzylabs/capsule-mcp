@@ -62,7 +62,7 @@ Test the schema endpoint
 ```bash
 curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json, text/event-stream" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/list",
@@ -74,7 +74,7 @@ Test listing contacts
 ```bash
 curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json, text/event-stream" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",

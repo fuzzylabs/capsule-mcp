@@ -5,7 +5,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from capsule_mcp.server import create_app, key_pair
+from capsule_mcp.server import create_app
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -27,11 +27,9 @@ def mock_capsule_response(monkeypatch):
     monkeypatch.setattr("capsule_mcp.server.capsule_request", mock_request)
 
 @pytest.fixture
-def auth_header() -> Dict[str, str]:
-    """Return an Authorization header with a valid test token."""
-    token = key_pair.create_token()
+def headers() -> Dict[str, str]:
+    """Return standard headers for requests."""
     return {
-        "Authorization": f"Bearer {token}",
         "Accept": "application/json, text/event-stream",
     }
 
@@ -39,12 +37,12 @@ def auth_header() -> Dict[str, str]:
 # Tests
 # ---------------------------------------------------------------------------
 
-def test_mcp_schema(client, auth_header):
+def test_mcp_schema(client, headers):
     """Test listing tools via the MCP endpoint."""
     response = client.post(
         "/mcp/",
         json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
 
@@ -59,7 +57,7 @@ def test_mcp_schema(client, auth_header):
     }
     assert expected_tools.issubset(tool_names)
 
-def test_list_contacts(client, mock_capsule_response, auth_header):
+def test_list_contacts(client, mock_capsule_response, headers):
     """Test the list_contacts tool."""
     response = client.post(
         "/mcp/",
@@ -72,7 +70,7 @@ def test_list_contacts(client, mock_capsule_response, auth_header):
             },
             "id": 1,
         },
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
 
@@ -82,7 +80,7 @@ def test_list_contacts(client, mock_capsule_response, auth_header):
     assert len(data["parties"]) > 0
     assert data["parties"][0]["firstName"] == "Test"
 
-def test_search_contacts(client, mock_capsule_response, auth_header):
+def test_search_contacts(client, mock_capsule_response, headers):
     """Test the search_contacts tool."""
     response = client.post(
         "/mcp/",
@@ -95,7 +93,7 @@ def test_search_contacts(client, mock_capsule_response, auth_header):
             },
             "id": 1,
         },
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
 
@@ -104,7 +102,7 @@ def test_search_contacts(client, mock_capsule_response, auth_header):
     assert "parties" in data
     assert len(data["parties"]) > 0
 
-def test_list_open_opportunities(client, mock_capsule_response, auth_header):
+def test_list_open_opportunities(client, mock_capsule_response, headers):
     """Test the list_open_opportunities tool."""
     response = client.post(
         "/mcp/",
@@ -117,11 +115,11 @@ def test_list_open_opportunities(client, mock_capsule_response, auth_header):
             },
             "id": 1,
         },
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
 
-def test_invalid_tool(client, auth_header):
+def test_invalid_tool(client, headers):
     """Invalid tool names should return an error result."""
     response = client.post(
         "/mcp/",
@@ -131,11 +129,11 @@ def test_invalid_tool(client, auth_header):
             "params": {"name": "invalid_tool", "arguments": {}},
             "id": 1,
         },
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json()["result"]["isError"] is True
-def test_missing_required_args(client, auth_header):
+def test_missing_required_args(client, headers):
     """Missing arguments should produce an error result."""
     response = client.post(
         "/mcp/",
@@ -145,7 +143,7 @@ def test_missing_required_args(client, auth_header):
             "params": {"name": "search_contacts", "arguments": {}},
             "id": 1,
         },
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json()["result"]["isError"] is True
@@ -155,23 +153,23 @@ def test_print_routes(client):
     routes = [route.path for route in client.app.routes if hasattr(route, "path")]
     assert "/mcp" in routes
 
-def test_debug_post_to_mcp(client, auth_header):
+def test_debug_post_to_mcp(client, headers):
     """Verify the MCP schema can be retrieved."""
     response = client.post(
         "/mcp/",
         json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200
     data = response.json()
     assert "result" in data and "tools" in data["result"]
 
-def test_mcp_redirect(client, auth_header):
+def test_mcp_redirect(client, headers):
     """Requests to /mcp should redirect to /mcp/."""
     response = client.post(
         "/mcp",
         json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
         follow_redirects=True,
-        headers=auth_header,
+        headers=headers,
     )
     assert response.status_code == 200

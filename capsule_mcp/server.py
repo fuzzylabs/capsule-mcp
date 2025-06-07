@@ -17,8 +17,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
-from fastmcp.server.auth import BearerAuthProvider
-from fastmcp.server.auth.providers.bearer import RSAKeyPair
+# Auth imports removed since auth is disabled
 
 # ---------------------------------------------------------------------------
 # Environment
@@ -38,8 +37,7 @@ CAPSULE_BASE_URL = os.getenv("CAPSULE_BASE_URL", "https://api.capsulecrm.com/api
 # inside ``capsule_request`` rather than during import.
 CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
 
-# Generate a test key pair for development
-key_pair = RSAKeyPair.generate()
+# Auth key pair generation removed since auth is disabled
 
 # ---------------------------------------------------------------------------
 # API Client
@@ -84,9 +82,7 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # ---------------------------------------------------------------------------
 
 # Create the MCP server
-mcp_auth = None if os.getenv("PYTEST_CURRENT_TEST") else BearerAuthProvider(
-    public_key=key_pair.public_key
-)
+mcp_auth = None  # Disable auth for local development
 
 mcp = FastMCP(
     name="Capsule CRM MCP",
