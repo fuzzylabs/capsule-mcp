@@ -59,14 +59,15 @@ python -m pytest
 Manually test the server with `curl`
 
 Test the schema endpoint
-```
-curl -X POST http://localhost:8000/mcp \
+```bash
+curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
   -d '{"type": "schema"}'
 ```
 
 Test listing contacts
-```curl -X POST http://localhost:8000/mcp \
+```bash
+curl -X POST http://localhost:8000/mcp/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
