@@ -4,6 +4,8 @@
 
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io) [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green)](https://python.org) [![Capsule CRM API v2](https://img.shields.io/badge/Capsule%20CRM-API%20v2-orange)](https://developer.capsulecrm.com)
 
+**🚨 Disclaimer**: This project is created by [Fuzzy Labs](https://fuzzylabs.ai) with good vibes and is not officially supported by Capsule CRM. Use at your own discretion.
+
 ## What This Does
 
 Transform how you work with your Capsule CRM data by asking Claude Desktop natural language questions like:
