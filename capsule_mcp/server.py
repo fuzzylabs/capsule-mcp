@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
 from fastmcp.server.auth.providers.bearer import RSAKeyPair
@@ -83,20 +84,45 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # ---------------------------------------------------------------------------
 
 # Create the MCP server
+mcp_auth = None if os.getenv("PYTEST_CURRENT_TEST") else BearerAuthProvider(
+    public_key=key_pair.public_key
+)
+
 mcp = FastMCP(
     name="Capsule CRM MCP",
     description=(
-        "Read only Capsule CRM tools for listing contacts and opportunities." 
+        "Read only Capsule CRM tools for listing contacts and opportunities."
         "Useful as a lightweight example of the Model Context Protocol."
     ),
-    auth=BearerAuthProvider(public_key=key_pair.public_key),
+    auth=mcp_auth,
+    json_response=True,
+    stateless_http=True,
 )
 
-if os.getenv("PYTEST_CURRENT_TEST"):
-    app = mcp.http_app()
-else:
-    app = FastAPI()
-    app.mount("/mcp/", mcp.http_app())
+
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
+
+# Create the MCP app with its internal endpoint at ``/`` so that when it's
+# mounted at ``/mcp`` the final URL becomes ``/mcp`` instead of ``/mcp/mcp``.
+def create_app() -> FastAPI:
+    """Return a new FastAPI application with the MCP routes mounted."""
+    mcp_app = mcp.http_app(path="/")
+
+    app = FastAPI(lifespan=mcp_app.lifespan)
+    app.mount("/mcp", mcp_app)
+
+    @app.api_route("/mcp", methods=["GET", "POST"])
+    async def mcp_redirect() -> RedirectResponse:
+        """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
+        return RedirectResponse(url="/mcp/", status_code=307)
+
+    return app
+
+
+# Create a default application instance for production use
+app = create_app()
 
 # ---------------------------------------------------------------------------
 # Tools
