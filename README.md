@@ -1,6 +1,6 @@
 # Capsule CRM MCP Server
 
-A Model Control Protocol (MCP) server for Capsule CRM, allowing AI assistants to interact with your Capsule CRM data.
+A Model Context Protocol (MCP) server for Capsule CRM, allowing AI assistants to interact with your Capsule CRM data.
 
 ## Features
 
