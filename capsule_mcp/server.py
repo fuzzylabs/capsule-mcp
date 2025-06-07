@@ -1,13 +1,15 @@
-"""Capsule CRM MCP Server
+"""Example Capsule CRM MCP Server.
 
-Exposes common Capsule CRM operations as Model Context Protocol (MCP) tools.
+This minimal server exposes read only Capsule CRM operations as Model Context
+Protocol (MCP) tools.  It is intentionally simple so it can be used as a
+reference implementation when integrating Capsule with AI assistants.
 
 Run locally:
-    uvicorn capsule_mcp.server:app --reload --port 8000
+    uvicorn capsule_mcp.server:app --reload
 """
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 
@@ -16,7 +18,6 @@ from fastapi import FastAPI
 from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
 from fastmcp.server.auth.providers.bearer import RSAKeyPair
-from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Environment
@@ -38,18 +39,6 @@ CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
 
 # Generate a test key pair for development
 key_pair = RSAKeyPair.generate()
-
-# ---------------------------------------------------------------------------
-# Data Models
-# ---------------------------------------------------------------------------
-
-class Person(BaseModel):
-    """A person contact in Capsule CRM."""
-    first_name: str
-    last_name: str
-    email: Optional[str] = None
-    organisation: Optional[str] = None
-    tags: Optional[List[str]] = None
 
 # ---------------------------------------------------------------------------
 # API Client
@@ -97,10 +86,8 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 mcp = FastMCP(
     name="Capsule CRM MCP",
     description=(
-        "Exposes common Capsule CRM actions (contact search, creation, notes, "
-        "tasks, and opportunities) as Model Context Protocol tools so that AI "
-        "assistants can read and update your pipeline in a secure, auditable "
-        "way."
+        "Read only Capsule CRM tools for listing contacts and opportunities." 
+        "Useful as a lightweight example of the Model Context Protocol."
     ),
     auth=BearerAuthProvider(public_key=key_pair.public_key),
 )
@@ -139,29 +126,6 @@ async def search_contacts(
     params = {"q": keyword, "page": page, "perPage": per_page}
     return await capsule_request("GET", "parties/search", params=params)
 
-@mcp.tool
-async def create_person(person: Person) -> Dict[str, Any]:
-    """Create a person contact in Capsule."""
-    payload = {
-        "party": {
-            "type": "person",
-            "firstName": person.first_name,
-            "lastName": person.last_name,
-            "email": person.email,
-            "organisation": person.organisation,
-            "tags": [{"name": tag} for tag in (person.tags or [])],
-        }
-    }
-    return await capsule_request("POST", "parties", json=payload)
-
-@mcp.tool
-async def add_note(
-    party_id: int,
-    note: str,
-) -> Dict[str, Any]:
-    """Attach a note to an existing party."""
-    payload = {"entry": {"type": "note", "content": note}}
-    return await capsule_request("POST", f"parties/{party_id}/entries", json=payload)
 
 @mcp.tool
 async def list_open_opportunities(

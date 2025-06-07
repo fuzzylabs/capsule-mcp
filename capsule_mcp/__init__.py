@@ -1,8 +1,7 @@
-"""Capsule MCP package – import *app* to get the FastAPI application."""
+"""Capsule CRM MCP package."""
 
 from .server import app, mcp
-from .models import NewPerson
 
-__all__ = ["app", "mcp", "NewPerson"]
+__all__ = ["app", "mcp"]
 
 __version__ = "0.1.0"
