@@ -21,20 +21,11 @@ from pydantic import BaseModel
 # ---------------------------------------------------------------------------
 
 CAPSULE_BASE_URL = os.getenv("CAPSULE_BASE_URL", "https://api.capsulecrm.com/api/v2")
-CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN", "test-token" if os.getenv("PYTEST_CURRENT_TEST") else None)
 
-if not CAPSULE_API_TOKEN and not os.getenv("PYTEST_CURRENT_TEST"):
-    raise RuntimeError(
-        "CAPSULE_API_TOKEN env var is required – create one in Capsule → "
-        "My Preferences → API Authentication and restart the server."
-    )
-
-HEADERS = {
-    "Authorization": f"Bearer {CAPSULE_API_TOKEN}",
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "User-Agent": "capsule-mcp-server/0.1.0 (+https://github.com/fuzzylabs/capsule-crm-mcp-server)",
-}
+# Capsule API token. For tests the ``PYTEST_CURRENT_TEST`` environment variable
+# is set while requests are executed, so we lazily default to ``"test-token"``
+# inside ``capsule_request`` rather than during import.
+CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
 
 # Generate a test key pair for development
 key_pair = RSAKeyPair.generate()
@@ -58,9 +49,25 @@ class Person(BaseModel):
 async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
     """Make a request to the Capsule CRM API."""
     url = f"{CAPSULE_BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
-    
+
+    token = CAPSULE_API_TOKEN
+    if not token and os.getenv("PYTEST_CURRENT_TEST"):
+        token = "test-token"
+    if not token:
+        raise RuntimeError(
+            "CAPSULE_API_TOKEN env var is required – create one in Capsule → "
+            "My Preferences → API Authentication and restart the server."
+        )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "capsule-mcp-server/0.1.0 (+https://github.com/fuzzylabs/capsule-crm-mcp-server)",
+    }
+
     async with httpx.AsyncClient(timeout=20) as client:
-        response = await client.request(method, url, headers=HEADERS, **kwargs)
+        response = await client.request(method, url, headers=headers, **kwargs)
         
         try:
             response.raise_for_status()
