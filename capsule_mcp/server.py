@@ -96,7 +96,9 @@ if os.getenv("PYTEST_CURRENT_TEST"):
     app = mcp.http_app()
 else:
     app = FastAPI()
-    app.mount("/mcp", mcp.http_app())
+    mcp_app = mcp.http_app()
+    app.mount("/mcp", mcp_app)
+    app.mount("/mcp/", mcp_app)  # Also mount with trailing slash
 
 # ---------------------------------------------------------------------------
 # Tools
