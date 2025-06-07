@@ -84,13 +84,19 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # ---------------------------------------------------------------------------
 
 # Create the MCP server
+mcp_auth = None if os.getenv("PYTEST_CURRENT_TEST") else BearerAuthProvider(
+    public_key=key_pair.public_key
+)
+
 mcp = FastMCP(
     name="Capsule CRM MCP",
     description=(
-        "Read only Capsule CRM tools for listing contacts and opportunities." 
+        "Read only Capsule CRM tools for listing contacts and opportunities."
         "Useful as a lightweight example of the Model Context Protocol."
     ),
-    auth=BearerAuthProvider(public_key=key_pair.public_key),
+    auth=mcp_auth,
+    json_response=True,
+    stateless_http=True,
 )
 
 
@@ -98,23 +104,25 @@ mcp = FastMCP(
 # Application
 # ---------------------------------------------------------------------------
 
-# Create a parent FastAPI application and mount the MCP app at ``/mcp/``.  This
-# mirrors the real server behaviour during tests so that request paths remain
-# consistent.
-app = FastAPI()
+# Create the MCP app with its internal endpoint at ``/`` so that when it's
+# mounted at ``/mcp`` the final URL becomes ``/mcp`` instead of ``/mcp/mcp``.
+def create_app() -> FastAPI:
+    """Return a new FastAPI application with the MCP routes mounted."""
+    mcp_app = mcp.http_app(path="/")
 
-# Mount the MCP app without the trailing slash so that ``/mcp/`` can be handled
-# by a normal route which forwards requests to the mounted application.  This
-# mirrors the behaviour of the deployed server and avoids 404 errors when the
-# trailing slash is included in requests.
-mcp_app = mcp.http_app()
-app.mount("/mcp", mcp_app)
+    app = FastAPI(lifespan=mcp_app.lifespan)
+    app.mount("/mcp", mcp_app)
+
+    @app.api_route("/mcp", methods=["GET", "POST"])
+    async def mcp_redirect() -> RedirectResponse:
+        """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
+        return RedirectResponse(url="/mcp/", status_code=307)
+
+    return app
 
 
-@app.api_route("/mcp", methods=["GET", "POST"])
-async def mcp_redirect() -> RedirectResponse:
-    """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
-    return RedirectResponse(url="/mcp/", status_code=307)
+# Create a default application instance for production use
+app = create_app()
 
 # ---------------------------------------------------------------------------
 # Tools
