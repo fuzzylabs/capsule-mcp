@@ -29,8 +29,8 @@ Transform how you work with your Capsule CRM data by asking Claude Desktop natur
 
 ```bash
 # Clone and install
-git clone https://github.com/fuzzylabs/capsule-crm-mcp-server.git
-cd capsule-crm-mcp-server
+git clone https://github.com/fuzzylabs/capsule-mcp.git
+cd capsule-mcp
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
@@ -50,7 +50,7 @@ Add this to your Claude Desktop config file:
     "capsule-crm": {
       "command": "/usr/bin/python3",
       "args": [
-        "/path/to/your/capsule-crm-mcp-server/capsule_mcp/server.py"
+        "/path/to/your/capsule-mcp/capsule_mcp/server.py"
       ],
       "env": {
         "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
@@ -116,7 +116,7 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 
 ### Getting Help
 
-- **Issues & Bugs:** [GitHub Issues](https://github.com/fuzzylabs/capsule-crm-mcp-server/issues)
+- **Issues & Bugs:** [GitHub Issues](https://github.com/fuzzylabs/capsule-mcp/issues)
 - **Capsule API Docs:** [developer.capsulecrm.com](https://developer.capsulecrm.com)
 - **MCP Protocol:** [modelcontextprotocol.io](https://modelcontextprotocol.io)
 

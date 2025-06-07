@@ -60,7 +60,7 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "capsule-mcp-server/0.1.0 (+https://github.com/fuzzylabs/capsule-crm-mcp-server)",
+        "User-Agent": "capsule-mcp/0.1.0 (+https://github.com/fuzzylabs/capsule-mcp)",
     }
 
     async with httpx.AsyncClient(timeout=20) as client:
