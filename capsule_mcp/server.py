@@ -14,7 +14,7 @@ from typing import Any, Dict
 from dotenv import load_dotenv
 
 import httpx
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
@@ -115,13 +115,6 @@ app.mount("/mcp", mcp_app)
 async def mcp_redirect() -> RedirectResponse:
     """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
     return RedirectResponse(url="/mcp/", status_code=307)
-
-
-@app.api_route("/mcp/", methods=["GET", "POST"])
-async def mcp_root(request: Request) -> Response:
-    """Forward requests from ``/mcp/`` to the mounted MCP application."""
-    request.scope["path"] = "/"
-    return await mcp_app(request.scope, request.receive, request.send)
 
 # ---------------------------------------------------------------------------
 # Tools

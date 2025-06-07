@@ -127,7 +127,7 @@ def test_missing_required_args(client):
 def test_print_routes(client):
     """Ensure that the MCP endpoint is registered."""
     routes = [route.path for route in client.app.routes if hasattr(route, "path")]
-    assert "/mcp/" in routes
+    assert "/mcp/" in routes or "/mcp" in routes
 
 def test_debug_post_to_mcp(client):
     """Verify the MCP schema can be retrieved."""
