@@ -17,7 +17,6 @@ import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastmcp import FastMCP
-# Auth imports removed since auth is disabled
 
 # ---------------------------------------------------------------------------
 # Environment
@@ -40,7 +39,6 @@ CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
 # MCP API key for authenticating requests to the MCP endpoints
 MCP_API_KEY = os.getenv("MCP_API_KEY")
 
-# Auth key pair generation removed since auth is disabled
 
 # ---------------------------------------------------------------------------
 # API Client
@@ -85,7 +83,7 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 # ---------------------------------------------------------------------------
 
 # Create the MCP server
-mcp_auth = None  # Disable auth for local development
+mcp_auth = None
 
 mcp = FastMCP(
     name="Capsule CRM MCP",
@@ -132,8 +130,7 @@ async def authenticate_request(request: Request):
             detail="Invalid Authorization header format. Use 'Authorization: Bearer <api_key>'"
         )
     
-    # Extract and validate API key
-    provided_key = auth_header[7:]  # Remove "Bearer " prefix
+    provided_key = auth_header[7:]
     if provided_key != MCP_API_KEY:
         raise HTTPException(
             status_code=401,
@@ -144,8 +141,6 @@ async def authenticate_request(request: Request):
 # Application
 # ---------------------------------------------------------------------------
 
-# Create the MCP app with its internal endpoint at ``/`` so that when it's
-# mounted at ``/mcp`` the final URL becomes ``/mcp`` instead of ``/mcp/mcp``.
 def create_app() -> FastAPI:
     """Return a new FastAPI application with the MCP routes mounted."""
     mcp_app = mcp.http_app(path="/")
@@ -169,7 +164,6 @@ def create_app() -> FastAPI:
     return app
 
 
-# Create a default application instance for production use
 app = create_app()
 
 # ---------------------------------------------------------------------------
