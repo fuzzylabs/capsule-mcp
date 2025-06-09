@@ -31,33 +31,27 @@ Transform how you work with your Capsule CRM data by asking AI assistants natura
 
 #### macOS Setup
 
-On newer Macs, you may need to install Python first:
-
 ```bash
-# Option 1: Install Python via Homebrew (recommended)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install python
-
-# Option 2: Install Python from python.org
-# Download from https://www.python.org/downloads/macos/
+# Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone and install
 git clone https://github.com/fuzzylabs/capsule-mcp.git
 cd capsule-mcp
-python3 -m venv venv
-source venv/bin/activate
-pip install -e .
+uv sync
 ```
 
 #### Linux/Windows Setup
 
 ```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh  # Linux/macOS
+# OR for Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
 # Clone and install
 git clone https://github.com/fuzzylabs/capsule-mcp.git
 cd capsule-mcp
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -e .
+uv sync
 ```
 
 ### 3. Connect to Your AI Assistant
@@ -74,9 +68,13 @@ Add this to your Claude Desktop config file:
 {
   "mcpServers": {
     "capsule-crm": {
-      "command": "/usr/bin/python3",
+      "command": "uv",
       "args": [
-        "/path/to/your/capsule-mcp/capsule_mcp/server.py"
+        "run",
+        "--directory",
+        "/path/to/your/capsule-mcp",
+        "python",
+        "capsule_mcp/server.py"
       ],
       "env": {
         "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
@@ -95,9 +93,13 @@ Or add this to your Cursor MCP settings:
 ```json
 {
   "capsule-crm": {
-    "command": "/usr/bin/python3",
+    "command": "uv",
     "args": [
-      "/path/to/your/capsule-mcp/capsule_mcp/server.py"
+      "run",
+      "--directory",
+      "/path/to/your/capsule-mcp",
+      "python",
+      "capsule_mcp/server.py"
     ],
     "env": {
       "CAPSULE_API_TOKEN": "your_capsule_api_token_here"
@@ -110,13 +112,13 @@ Or add this to your Cursor MCP settings:
 
 This server is compatible with any MCP client. Refer to your client's documentation for MCP server configuration.
 
-**💡 Python Path Help:**
-- **macOS (Homebrew):** `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
-- **macOS (System):** `/usr/bin/python3` (if available)
-- **macOS (python.org):** `/usr/local/bin/python3`
-- **Find your Python:** Run `which python3` in terminal
-- **Using pyenv:** Use full path from `pyenv which python`
-- **Windows:** Try `C:\Python311\python.exe`
+**💡 Setup Help:**
+- **Using uv (recommended):** Use `uv run` command as shown above - no Python path needed!
+- **Manual Python paths (if not using uv):**
+  - **macOS (Homebrew):** `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
+  - **macOS (System):** `/usr/bin/python3` (if available)
+  - **Find your Python:** Run `which python3` in terminal
+  - **Windows:** Try `C:\Python311\python.exe`
 
 ### 4. Start Using
 
@@ -151,13 +153,17 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 ### Common Issues
 
 **"No module named 'capsule_mcp'"**
-- Make sure you're using the absolute path to the server.py file
-- Verify Python can find the installed packages: `pip list | grep fastmcp`
+- **Using uv:** Make sure you're using the absolute directory path with `uv run --directory`
+- **Manual setup:** Verify Python can find the installed packages: `pip list | grep fastmcp`
 
-**"spawn python ENOENT" or "command not found: python"**
-- **macOS:** Install Python first (see installation section above)
+**"spawn uv ENOENT" or "command not found: uv"**
+- Install uv first: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Restart your terminal after installation
+- Verify installation: `uv --version`
+
+**"spawn python ENOENT" (if not using uv)**
+- Switch to uv setup (recommended) or use full Python path in config
 - Check your Python path: `which python3`
-- Use the full path in your config (e.g., `/opt/homebrew/bin/python3` not just `python3`)
 - Try different common paths: `/usr/bin/python3`, `/usr/local/bin/python3`, `/opt/homebrew/bin/python3`
 
 **"Authentication failed"**
@@ -286,12 +292,12 @@ cp .env.example .env
 
 **Run Tests:**
 ```bash
-python -m pytest
+uv run pytest
 ```
 
 **HTTP Server (for testing):**
 ```bash
-uvicorn capsule_mcp.server:app --reload
+uv run uvicorn capsule_mcp.server:app --reload
 # Server available at http://localhost:8000/mcp/
 ```
 
