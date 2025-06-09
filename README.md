@@ -114,6 +114,7 @@ This server is compatible with any MCP client. Refer to your client's documentat
 
 **💡 Setup Help:**
 - **Using uv (recommended):** Use `uv run` command as shown above - no Python path needed!
+- **uv path for Claude Desktop:** Use full path `~/.local/bin/uv` (find yours with `which uv`)
 - **Manual Python paths (if not using uv):**
   - **macOS (Homebrew):** `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
   - **macOS (System):** `/usr/bin/python3` (if available)
