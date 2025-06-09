@@ -14,25 +14,25 @@ The server can run in two modes:
 
 ### Testing
 ```bash
-python -m pytest                    # Run all tests
-python -m pytest tests/test_server.py::test_list_contacts  # Run specific test
-python -m pytest -v                 # Verbose output
+uv run pytest                       # Run all tests
+uv run pytest tests/test_server.py::test_list_contacts  # Run specific test
+uv run pytest -v                    # Verbose output
 ```
 
 ### Development Server (HTTP mode)
 ```bash
-uvicorn capsule_mcp.server:app --reload  # Start dev server at http://localhost:8000/mcp/
+uv run uvicorn capsule_mcp.server:app --reload  # Start dev server at http://localhost:8000/mcp/
 ```
 
 ### MCP Server (stdio mode)
 ```bash
-python capsule_mcp/server.py        # Run as MCP server via stdio
+uv run python capsule_mcp/server.py # Run as MCP server via stdio
 ```
 
 ### Installation
 ```bash
-pip install -e .                    # Install in development mode
-pip install -e .[dev]               # Install with dev dependencies (black, isort, pytest, ruff)
+uv sync                             # Install dependencies and create virtual environment
+uv sync --dev                       # Install with dev dependencies (black, isort, pytest, ruff)
 ```
 
 ## Architecture
