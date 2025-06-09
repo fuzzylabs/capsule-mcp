@@ -29,11 +29,33 @@ Transform how you work with your Capsule CRM data by asking AI assistants natura
 
 ### 2. Install & Configure
 
+#### macOS Setup
+
+On newer Macs, you may need to install Python first:
+
+```bash
+# Option 1: Install Python via Homebrew (recommended)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install python
+
+# Option 2: Install Python from python.org
+# Download from https://www.python.org/downloads/macos/
+
+# Clone and install
+git clone https://github.com/fuzzylabs/capsule-mcp.git
+cd capsule-mcp
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+```
+
+#### Linux/Windows Setup
+
 ```bash
 # Clone and install
 git clone https://github.com/fuzzylabs/capsule-mcp.git
 cd capsule-mcp
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
@@ -89,6 +111,9 @@ Or add this to your Cursor MCP settings:
 This server is compatible with any MCP client. Refer to your client's documentation for MCP server configuration.
 
 **💡 Python Path Help:**
+- **macOS (Homebrew):** `/opt/homebrew/bin/python3` (Apple Silicon) or `/usr/local/bin/python3` (Intel)
+- **macOS (System):** `/usr/bin/python3` (if available)
+- **macOS (python.org):** `/usr/local/bin/python3`
 - **Find your Python:** Run `which python3` in terminal
 - **Using pyenv:** Use full path from `pyenv which python`
 - **Windows:** Try `C:\Python311\python.exe`
@@ -129,9 +154,11 @@ This MCP server provides **complete read-only access** to your Capsule CRM:
 - Make sure you're using the absolute path to the server.py file
 - Verify Python can find the installed packages: `pip list | grep fastmcp`
 
-**"spawn python ENOENT"**
-- Check your Python path is correct: `which python3`
-- Use the full path (e.g., `/usr/bin/python3` not just `python3`)
+**"spawn python ENOENT" or "command not found: python"**
+- **macOS:** Install Python first (see installation section above)
+- Check your Python path: `which python3`
+- Use the full path in your config (e.g., `/opt/homebrew/bin/python3` not just `python3`)
+- Try different common paths: `/usr/bin/python3`, `/usr/local/bin/python3`, `/opt/homebrew/bin/python3`
 
 **"Authentication failed"**
 - Verify your Capsule API token is correct
