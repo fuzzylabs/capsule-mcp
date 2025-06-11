@@ -1,1 +1,1 @@
-"""Test package for Capsule CRM MCP Server.""" 
+"""Test package for Capsule CRM MCP Server."""

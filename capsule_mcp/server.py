@@ -44,6 +44,7 @@ MCP_API_KEY = os.getenv("MCP_API_KEY")
 # API Client
 # ---------------------------------------------------------------------------
 
+
 async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
     """Make a request to the Capsule CRM API."""
     url = f"{CAPSULE_BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
@@ -66,17 +67,22 @@ async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any
 
     async with httpx.AsyncClient(timeout=20) as client:
         response = await client.request(method, url, headers=headers, **kwargs)
-        
+
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            if exc.response.headers.get("content-type", "").startswith("application/json"):
+            if exc.response.headers.get("content-type", "").startswith(
+                "application/json"
+            ):
                 detail = exc.response.json()
             else:
                 detail = exc.response.text
-            raise RuntimeError(f"Capsule API error {exc.response.status_code}: {detail}") from None
-            
+            raise RuntimeError(
+                f"Capsule API error {exc.response.status_code}: {detail}"
+            ) from None
+
         return response.json()
+
 
 # ---------------------------------------------------------------------------
 # MCP Server
@@ -101,59 +107,59 @@ mcp = FastMCP(
 # Authentication
 # ---------------------------------------------------------------------------
 
+
 async def authenticate_request(request: Request):
     """Authenticate requests to MCP endpoints using API key."""
     # Skip authentication for tests
     if os.getenv("PYTEST_CURRENT_TEST"):
         return
-    
+
     # Skip authentication if no API key is configured
     if not MCP_API_KEY:
         return
-    
+
     # Only authenticate /mcp/ endpoints
     if not request.url.path.startswith("/mcp"):
         return
-    
+
     # Check for Authorization header
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(
             status_code=401,
-            detail="Missing Authorization header. Use 'Authorization: Bearer <api_key>'"
+            detail="Missing Authorization header. Use 'Authorization: Bearer <api_key>'",
         )
-    
+
     # Validate Bearer token format
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
             status_code=401,
-            detail="Invalid Authorization header format. Use 'Authorization: Bearer <api_key>'"
+            detail="Invalid Authorization header format. Use 'Authorization: Bearer <api_key>'",
         )
-    
+
     provided_key = auth_header[7:]
     if provided_key != MCP_API_KEY:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid API key"
-        )
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
 
 # ---------------------------------------------------------------------------
 # Application
 # ---------------------------------------------------------------------------
+
 
 def create_app() -> FastAPI:
     """Return a new FastAPI application with the MCP routes mounted."""
     mcp_app = mcp.http_app(path="/")
 
     app = FastAPI(lifespan=mcp_app.lifespan)
-    
+
     # Add authentication middleware
     @app.middleware("http")
     async def auth_middleware(request: Request, call_next):
         await authenticate_request(request)
         response = await call_next(request)
         return response
-    
+
     app.mount("/mcp", mcp_app)
 
     @app.api_route("/mcp", methods=["GET", "POST"])
@@ -170,6 +176,7 @@ app = create_app()
 # Tools
 # ---------------------------------------------------------------------------
 
+
 @mcp.tool
 async def list_contacts(
     page: int = 1,
@@ -178,7 +185,7 @@ async def list_contacts(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return a paginated list of contacts.
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of contacts per page (default: 50, max: 100)
@@ -192,8 +199,9 @@ async def list_contacts(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "parties", params=params)
+
 
 @mcp.tool
 async def search_contacts(
@@ -205,6 +213,7 @@ async def search_contacts(
     params = {"q": keyword, "page": page, "perPage": per_page}
     return await capsule_request("GET", "parties/search", params=params)
 
+
 @mcp.tool
 async def list_recent_contacts(
     page: int = 1,
@@ -213,22 +222,11 @@ async def list_recent_contacts(
     """Return contacts sorted by most recently contacted/updated."""
     filter_data = {
         "filter": {
-            "conditions": [
-                {
-                    "field": "type",
-                    "operator": "is",
-                    "value": "person"
-                }
-            ],
-            "orderBy": [
-                {
-                    "field": "lastContactedOn",
-                    "direction": "descending"
-                }
-            ]
+            "conditions": [{"field": "type", "operator": "is", "value": "person"}],
+            "orderBy": [{"field": "lastContactedOn", "direction": "descending"}],
         },
         "page": page,
-        "perPage": per_page
+        "perPage": per_page,
     }
     return await capsule_request("POST", "parties/filters/results", json=filter_data)
 
@@ -240,7 +238,7 @@ async def list_opportunities(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return a paginated list of opportunities.
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of opportunities per page (default: 50, max: 100)
@@ -252,8 +250,9 @@ async def list_opportunities(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "opportunities", params=params)
+
 
 @mcp.tool
 async def list_open_opportunities(
@@ -264,28 +263,18 @@ async def list_open_opportunities(
     filter_data = {
         "filter": {
             "conditions": [
-                {
-                    "field": "milestone",
-                    "operator": "is not",
-                    "value": "won"
-                },
-                {
-                    "field": "milestone", 
-                    "operator": "is not",
-                    "value": "lost"
-                }
+                {"field": "milestone", "operator": "is not", "value": "won"},
+                {"field": "milestone", "operator": "is not", "value": "lost"},
             ],
-            "orderBy": [
-                {
-                    "field": "expectedCloseOn",
-                    "direction": "ascending"
-                }
-            ]
+            "orderBy": [{"field": "expectedCloseOn", "direction": "ascending"}],
         },
         "page": page,
-        "perPage": per_page
+        "perPage": per_page,
     }
-    return await capsule_request("POST", "opportunities/filters/results", json=filter_data)
+    return await capsule_request(
+        "POST", "opportunities/filters/results", json=filter_data
+    )
+
 
 # Cases/Support
 @mcp.tool
@@ -295,7 +284,7 @@ async def list_cases(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return a paginated list of support cases.
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of cases per page (default: 50, max: 100)
@@ -307,8 +296,9 @@ async def list_cases(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "kases", params=params)
+
 
 @mcp.tool
 async def search_cases(
@@ -320,10 +310,12 @@ async def search_cases(
     params = {"q": keyword, "page": page, "perPage": per_page}
     return await capsule_request("GET", "kases/search", params=params)
 
+
 @mcp.tool
 async def get_case(case_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific support case."""
     return await capsule_request("GET", f"kases/{case_id}")
+
 
 # Tasks
 @mcp.tool
@@ -333,7 +325,7 @@ async def list_tasks(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return a paginated list of tasks.
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of tasks per page (default: 50, max: 100)
@@ -345,13 +337,15 @@ async def list_tasks(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "tasks", params=params)
+
 
 @mcp.tool
 async def get_task(task_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific task."""
     return await capsule_request("GET", f"tasks/{task_id}")
+
 
 # Timeline Entries
 @mcp.tool
@@ -361,7 +355,7 @@ async def list_entries(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return timeline entries (notes, emails, calls, etc.).
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of entries per page (default: 50, max: 100)
@@ -373,13 +367,15 @@ async def list_entries(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "entries", params=params)
+
 
 @mcp.tool
 async def get_entry(entry_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific timeline entry."""
     return await capsule_request("GET", f"entries/{entry_id}")
+
 
 # Projects
 @mcp.tool
@@ -389,7 +385,7 @@ async def list_projects(
     since: str = None,
 ) -> Dict[str, Any]:
     """Return a paginated list of projects.
-    
+
     Args:
         page: Page number (default: 1)
         per_page: Number of projects per page (default: 50, max: 100)
@@ -401,13 +397,15 @@ async def list_projects(
     }
     if since:
         params["since"] = since
-    
+
     return await capsule_request("GET", "projects", params=params)
+
 
 @mcp.tool
 async def get_project(project_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific project."""
     return await capsule_request("GET", f"projects/{project_id}")
+
 
 # Tags
 @mcp.tool
@@ -422,10 +420,12 @@ async def list_tags(
     }
     return await capsule_request("GET", "tags", params=params)
 
+
 @mcp.tool
 async def get_tag(tag_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific tag."""
     return await capsule_request("GET", f"tags/{tag_id}")
+
 
 # Users
 @mcp.tool
@@ -440,10 +440,12 @@ async def list_users(
     }
     return await capsule_request("GET", "users", params=params)
 
+
 @mcp.tool
 async def get_user(user_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific user."""
     return await capsule_request("GET", f"users/{user_id}")
+
 
 # Individual Contact Operations
 @mcp.tool
@@ -451,10 +453,12 @@ async def get_contact(contact_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific contact."""
     return await capsule_request("GET", f"parties/{contact_id}")
 
+
 @mcp.tool
 async def get_opportunity(opportunity_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific opportunity."""
     return await capsule_request("GET", f"opportunities/{opportunity_id}")
+
 
 # Configuration Tools
 @mcp.tool
@@ -462,20 +466,24 @@ async def list_pipelines() -> Dict[str, Any]:
     """Return a list of sales pipelines."""
     return await capsule_request("GET", "pipelines")
 
+
 @mcp.tool
 async def list_stages() -> Dict[str, Any]:
     """Return a list of pipeline stages."""
     return await capsule_request("GET", "stages")
+
 
 @mcp.tool
 async def list_milestones() -> Dict[str, Any]:
     """Return a list of opportunity milestones."""
     return await capsule_request("GET", "milestones")
 
+
 @mcp.tool
 async def list_custom_fields() -> Dict[str, Any]:
     """Return a list of custom field definitions."""
     return await capsule_request("GET", "fieldDefinitions")
+
 
 # Product Catalog
 @mcp.tool
@@ -490,6 +498,7 @@ async def list_products(
     }
     return await capsule_request("GET", "products", params=params)
 
+
 @mcp.tool
 async def list_categories(
     page: int = 1,
@@ -502,11 +511,13 @@ async def list_categories(
     }
     return await capsule_request("GET", "categories", params=params)
 
+
 # System Information
 @mcp.tool
 async def list_currencies() -> Dict[str, Any]:
     """Return a list of supported currencies."""
     return await capsule_request("GET", "currencies")
+
 
 # ---------------------------------------------------------------------------
 # CLI
