@@ -93,10 +93,6 @@ mcp_auth = None
 
 mcp = FastMCP(
     name="Capsule CRM MCP",
-    description=(
-        "Read only Capsule CRM tools for listing contacts and opportunities."
-        "Useful as a lightweight example of the Model Context Protocol."
-    ),
     auth=mcp_auth,
     json_response=True,
     stateless_http=True,
