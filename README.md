@@ -88,7 +88,7 @@ Add this to your Claude Desktop config file:
 
 **📋 Quick Setup:** 
 
-<a href="add-to-cursor.html" style="display: inline-block; background-color: #007AFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">🚀 Add to Cursor (Step-by-Step Guide)</a>
+<a href="https://htmlpreview.github.io/?https://github.com/fuzzylabs/capsule-mcp/blob/main/add-to-cursor.html" style="display: inline-block; background-color: #007AFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">🚀 Add to Cursor (Step-by-Step Guide)</a>
 
 Or add this to your Cursor MCP settings:
 
