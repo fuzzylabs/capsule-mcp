@@ -75,8 +75,8 @@ class ConfigValidator:
         content = readme_path.read_text()
         
         # Find Claude Desktop config block - more flexible pattern
-        pattern = r'```json\s*(\{[^`]*"mcpServers"[^`]*\})\s*```'
-        match = re.search(pattern, content, re.DOTALL)
+        pattern = r'```json\s*(\{.*?"mcpServers".*?\})\s*```'
+        match = re.search(pattern, content, re.DOTALL | re.MULTILINE)
         
         if not match:
             self.error("Claude Desktop config not found in README.md")
@@ -95,9 +95,10 @@ class ConfigValidator:
         readme_path = self.repo_root / "README.md"
         content = readme_path.read_text()
         
-        # Find manual Cursor config (after "Or add this to your Cursor MCP settings")
-        pattern = r'Or add this to your Cursor MCP settings:\s*```json\s*(\{[^`]+\})\s*```'
-        match = re.search(pattern, content, re.DOTALL)
+        # Find manual Cursor config (after "Or manually add this to your Cursor MCP settings")
+        # More robust pattern that handles various whitespace and line endings
+        pattern = r'Or manually add this to your Cursor MCP settings:\s*```json\s*(\{.*?\})\s*```'
+        match = re.search(pattern, content, re.DOTALL | re.MULTILINE)
         
         if not match:
             self.error("Manual Cursor config not found in README.md")

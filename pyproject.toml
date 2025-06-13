@@ -31,4 +31,5 @@ where = ["."]
 [dependency-groups]
 dev = [
     "pytest>=8.4.0",
+    "pyyaml>=6.0",
 ]
