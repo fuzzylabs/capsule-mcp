@@ -86,7 +86,9 @@ Add this to your Claude Desktop config file:
 
 #### Cursor
 
-**📋 Quick Setup:** Open [`add-to-cursor.html`](add-to-cursor.html) in your browser for step-by-step instructions.
+**📋 Quick Setup:** 
+
+<a href="add-to-cursor.html" style="display: inline-block; background-color: #007AFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">🚀 Add to Cursor (Step-by-Step Guide)</a>
 
 Or add this to your Cursor MCP settings:
 
