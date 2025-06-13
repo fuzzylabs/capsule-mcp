@@ -46,9 +46,19 @@ class ConfigValidator:
             
         content = readme_path.read_text()
         
-        # Find Cursor deeplink
-        pattern = r'cursor://anysphere\.cursor-deeplink/mcp/install\?name=([^&]+)&config=([^"]+)'
-        match = re.search(pattern, content)
+        # Find Cursor deeplink - handle both HTML and Markdown formats
+        # Markdown format: [text](cursor://anysphere.cursor-deeplink/mcp/install?name=X&config=Y)
+        # HTML format: <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=X&config=Y">
+        patterns = [
+            r'\[.*?\]\(cursor://anysphere\.cursor-deeplink/mcp/install\?name=([^&]+)&config=([^)]+)\)',  # Markdown
+            r'cursor://anysphere\.cursor-deeplink/mcp/install\?name=([^&]+)&config=([^">\s]+)'  # HTML or direct
+        ]
+        
+        match = None
+        for pattern in patterns:
+            match = re.search(pattern, content)
+            if match:
+                break
         
         if not match:
             self.error("Cursor deeplink not found in README.md")
