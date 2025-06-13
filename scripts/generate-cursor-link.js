@@ -55,9 +55,25 @@ function updateReadme(deeplink) {
   
   let content = fs.readFileSync(readmePath, 'utf8');
   
-  // Find and replace the Cursor deeplink
-  const linkPattern = /(<a href="cursor:\/\/[^"]*"[^>]*>)/;
-  const match = content.match(linkPattern);
+  // Find and replace the Cursor deeplink - handle various formats
+  const linkPatterns = [
+    /(```\s*cursor:\/\/[^\s`]+\s*```)/s,            // Code block format
+    /(\[!\[.*?\]\([^)]*\)\]\(cursor:\/\/[^)]*\))/,  // Badge format
+    /(\[.*?\]\(cursor:\/\/[^)]*\))/,                // Markdown format
+    /(<a href="cursor:\/\/[^"]*"[^>]*>.*?<\/a>)/s,  // Multi-line HTML
+    /(<a href="cursor:\/\/[^"]*"[^>]*>)/,           // Single-line HTML start
+  ];
+  
+  let match = null;
+  let patternUsed = null;
+  
+  for (const pattern of linkPatterns) {
+    match = content.match(pattern);
+    if (match) {
+      patternUsed = pattern;
+      break;
+    }
+  }
   
   if (match) {
     const oldLink = match[1];

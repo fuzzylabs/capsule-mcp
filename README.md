@@ -88,7 +88,15 @@ Add this to your Claude Desktop config file:
 
 **📋 Quick Setup:** 
 
-**[🚀 Add to Cursor (One-Click Install)](cursor://anysphere.cursor-deeplink/mcp/install?name=capsule-crm&config=eyJjYXBzdWxlLWNybSI6eyJjb21tYW5kIjoidXYiLCJhcmdzIjpbInJ1biIsIi0tZGlyZWN0b3J5IiwiL3BhdGgvdG8veW91ci9jYXBzdWxlLW1jcCIsInB5dGhvbiIsImNhcHN1bGVfbWNwL3NlcnZlci5weSJdLCJlbnYiOnsiQ0FQU1VMRV9BUElfVE9LRU4iOiJ5b3VyX2NhcHN1bGVfYXBpX3Rva2VuX2hlcmUifX19)**
+**Copy this Cursor deeplink and paste it in your browser address bar:**
+
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=capsule-crm&config=eyJjYXBzdWxlLWNybSI6eyJjb21tYW5kIjoidXYiLCJhcmdzIjpbInJ1biIsIi0tZGlyZWN0b3J5IiwiL3BhdGgvdG8veW91ci9jYXBzdWxlLW1jcCIsInB5dGhvbiIsImNhcHN1bGVfbWNwL3NlcnZlci5weSJdLCJlbnYiOnsiQ0FQU1VMRV9BUElfVE9LRU4iOiJ5b3VyX2NhcHN1bGVfYXBpX3Rva2VuX2hlcmUifX19
+
+**💡 How to use:**
+1. Copy the entire `cursor://` URL above
+2. Paste it into your browser's address bar 
+3. Press Enter - this will open Cursor and prompt to install the MCP server
 
 **Note:** After clicking the button, you'll need to:
 1. Update the path `/path/to/your/capsule-mcp` to your actual installation directory
