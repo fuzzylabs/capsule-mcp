@@ -88,10 +88,7 @@ Add this to your Claude Desktop config file:
 
 **📋 Quick Setup:** 
 
-<a href="cursor://anysphere.cursor-deeplink/mcp/install?name=capsule-crm&config=eyJjYXBzdWxlLWNybSI6eyJjb21tYW5kIjoidXYiLCJhcmdzIjpbInJ1biIsIi0tZGlyZWN0b3J5IiwiL3BhdGgvdG8veW91ci9jYXBzdWxlLW1jcCIsInB5dGhvbiIsImNhcHN1bGVfbWNwL3NlcnZlci5weSJdLCJlbnYiOnsiQ0FQU1VMRV9BUElfVE9LRU4iOiJ5b3VyX2NhcHN1bGVfYXBpX3Rva2VuX2hlcmUifX19"
-   style="display: inline-block; background-color: #007AFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">
-   🚀 Add to Cursor (One-Click Install)
-</a>
+[![🚀 Add to Cursor (One-Click Install)](https://img.shields.io/badge/🚀_Add_to_Cursor-One--Click_Install-007AFF?style=for-the-badge&logo=visual-studio-code&logoColor=white)](cursor://anysphere.cursor-deeplink/mcp/install?name=capsule-crm&config=eyJjYXBzdWxlLWNybSI6eyJjb21tYW5kIjoidXYiLCJhcmdzIjpbInJ1biIsIi0tZGlyZWN0b3J5IiwiL3BhdGgvdG8veW91ci9jYXBzdWxlLW1jcCIsInB5dGhvbiIsImNhcHN1bGVfbWNwL3NlcnZlci5weSJdLCJlbnYiOnsiQ0FQU1VMRV9BUElfVE9LRU4iOiJ5b3VyX2NhcHN1bGVfYXBpX3Rva2VuX2hlcmUifX19
 
 **Note:** After clicking the button, you'll need to:
 1. Update the path `/path/to/your/capsule-mcp` to your actual installation directory
