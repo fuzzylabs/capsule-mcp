@@ -21,3 +21,5 @@ jobs:
         run: uv sync --dev
       - name: Run tests
         run: uv run pytest -q
+      - name: Validate configuration sync
+        run: uv run python scripts/validate-configs.py
