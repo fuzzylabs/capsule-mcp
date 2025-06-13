@@ -55,8 +55,9 @@ function updateReadme(deeplink) {
   
   let content = fs.readFileSync(readmePath, 'utf8');
   
-  // Find and replace the Cursor deeplink - handle HTML, markdown, and badge formats
+  // Find and replace the Cursor deeplink - handle various formats
   const linkPatterns = [
+    /(```\s*cursor:\/\/[^\s`]+\s*```)/s,            // Code block format
     /(\[!\[.*?\]\([^)]*\)\]\(cursor:\/\/[^)]*\))/,  // Badge format
     /(\[.*?\]\(cursor:\/\/[^)]*\))/,                // Markdown format
     /(<a href="cursor:\/\/[^"]*"[^>]*>.*?<\/a>)/s,  // Multi-line HTML
