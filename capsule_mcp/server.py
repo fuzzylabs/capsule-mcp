@@ -34,7 +34,21 @@ class CapsuleMCPServer(BaseMCPServer):
             api_token=CAPSULE_API_TOKEN,
             user_agent="capsule-mcp/0.1.0 (+https://github.com/fuzzylabs/capsule-mcp)"
         )
-        super().__init__("Capsule CRM MCP", api_client=api_client)
+        
+        # Initialize without calling super().__init__ to override MCP creation
+        self.name = "Capsule CRM MCP"
+        self.api_client = api_client
+        
+        # Create MCP instance with proper HTTP settings
+        from fastmcp import FastMCP
+        self.mcp = FastMCP(
+            name=self.name,
+            json_response=True,
+            stateless_http=True,
+        )
+        
+        # Register tools
+        self.register_tools()
     
     def register_tools(self) -> None:
         """Register all Capsule CRM tools."""
