@@ -24,10 +24,12 @@ def client():
 def mock_capsule_response(monkeypatch):
     """Mock the Capsule API response."""
 
-    async def mock_request(*args, **kwargs):
+    async def mock_request(method, endpoint, **kwargs):
         return {"parties": [{"id": 1, "firstName": "Test", "lastName": "User"}]}
 
-    monkeypatch.setattr("capsule_mcp.server.capsule_request", mock_request)
+    # Mock the API client's get method instead of capsule_request
+    monkeypatch.setattr("mcp_base.api_client.BearerTokenAPIClient.get", mock_request)
+    monkeypatch.setattr("mcp_base.api_client.BearerTokenAPIClient.post", mock_request)
 
 
 @pytest.fixture
