@@ -1,8 +1,7 @@
-"""Example Capsule CRM MCP Server.
+"""Capsule CRM MCP Server using mcp-base toolkit.
 
-This minimal server exposes read only Capsule CRM operations as Model Context
-Protocol (MCP) tools.  It is intentionally simple so it can be used as a
-reference implementation when integrating Capsule with AI assistants.
+This server exposes read only Capsule CRM operations as Model Context
+Protocol (MCP) tools using the mcp-base toolkit for common patterns.
 
 Run locally:
     uvicorn capsule_mcp.server:app --reload
@@ -11,160 +10,94 @@ Run locally:
 import os
 from typing import Any, Dict
 
-from dotenv import load_dotenv
-
-import httpx
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import RedirectResponse
-from fastmcp import FastMCP
-
-# ---------------------------------------------------------------------------
-# Environment
-# ---------------------------------------------------------------------------
-
-# Load variables from a .env file if present before reading any env vars
-load_dotenv()
+from mcp_base import BaseMCPServer, BearerTokenAPIClient, require_env_var, paginated_endpoint
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
 CAPSULE_BASE_URL = os.getenv("CAPSULE_BASE_URL", "https://api.capsulecrm.com/api/v2")
-
-# Capsule API token. For tests the ``PYTEST_CURRENT_TEST`` environment variable
-# is set while requests are executed, so we lazily default to ``"test-token"``
-# inside ``capsule_request`` rather than during import.
 CAPSULE_API_TOKEN = os.getenv("CAPSULE_API_TOKEN")
-
-# MCP API key for authenticating requests to the MCP endpoints
 MCP_API_KEY = os.getenv("MCP_API_KEY")
 
+# ---------------------------------------------------------------------------
+# Capsule MCP Server
+# ---------------------------------------------------------------------------
+
+class CapsuleMCPServer(BaseMCPServer):
+    """Capsule CRM MCP Server implementation."""
+    
+    def __init__(self):
+        # Create API client for Capsule CRM
+        api_client = BearerTokenAPIClient(
+            base_url=CAPSULE_BASE_URL,
+            api_token=CAPSULE_API_TOKEN,
+            user_agent="capsule-mcp/0.1.0 (+https://github.com/fuzzylabs/capsule-mcp)"
+        )
+        super().__init__("Capsule CRM MCP", api_client=api_client)
+    
+    def register_tools(self) -> None:
+        """Register all Capsule CRM tools."""
+        # Tools will be registered via decorators below
+        pass
+
+# Create server instance
+server = CapsuleMCPServer()
 
 # ---------------------------------------------------------------------------
-# API Client
+# API Client Compatibility Layer
 # ---------------------------------------------------------------------------
-
 
 async def capsule_request(method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
-    """Make a request to the Capsule CRM API."""
-    url = f"{CAPSULE_BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
-
-    token = CAPSULE_API_TOKEN
-    if not token and os.getenv("PYTEST_CURRENT_TEST"):
-        token = "test-token"
-    if not token:
-        raise RuntimeError(
-            "CAPSULE_API_TOKEN env var is required – create one in Capsule → "
-            "My Preferences → API Authentication and restart the server."
-        )
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "User-Agent": "capsule-mcp/0.1.0 (+https://github.com/fuzzylabs/capsule-mcp)",
-    }
-
-    async with httpx.AsyncClient(timeout=20) as client:
-        response = await client.request(method, url, headers=headers, **kwargs)
-
-        try:
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            if exc.response.headers.get("content-type", "").startswith(
-                "application/json"
-            ):
-                detail = exc.response.json()
-            else:
-                detail = exc.response.text
-            raise RuntimeError(
-                f"Capsule API error {exc.response.status_code}: {detail}"
-            ) from None
-
-        return response.json()
+    """Make a request to the Capsule CRM API using the mcp-base client."""
+    return await server.api_client.request(method, endpoint, **kwargs)
 
 
-# ---------------------------------------------------------------------------
-# MCP Server
-# ---------------------------------------------------------------------------
+# Access the FastMCP instance from mcp-base
+mcp = server.mcp
 
-# Create the MCP server
-mcp_auth = None
-
-mcp = FastMCP(
-    name="Capsule CRM MCP",
-    auth=mcp_auth,
-    json_response=True,
-    stateless_http=True,
-)
-
-
-# ---------------------------------------------------------------------------
-# Authentication
-# ---------------------------------------------------------------------------
-
-
-async def authenticate_request(request: Request):
-    """Authenticate requests to MCP endpoints using API key."""
-    # Skip authentication for tests
-    if os.getenv("PYTEST_CURRENT_TEST"):
-        return
-
-    # Skip authentication if no API key is configured
-    if not MCP_API_KEY:
-        return
-
-    # Only authenticate /mcp/ endpoints
-    if not request.url.path.startswith("/mcp"):
-        return
-
-    # Check for Authorization header
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing Authorization header. Use 'Authorization: Bearer <api_key>'",
-        )
-
-    # Validate Bearer token format
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid Authorization header format. Use 'Authorization: Bearer <api_key>'",
-        )
-
-    provided_key = auth_header[7:]
-    if provided_key != MCP_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-
-
-# ---------------------------------------------------------------------------
-# Application
-# ---------------------------------------------------------------------------
-
-
-def create_app() -> FastAPI:
-    """Return a new FastAPI application with the MCP routes mounted."""
+def create_app():
+    """Return the FastAPI application (for compatibility)."""
+    # Create FastAPI app from MCP server
+    from fastapi import FastAPI
+    from fastapi.responses import RedirectResponse
+    
     mcp_app = mcp.http_app(path="/")
-
     app = FastAPI(lifespan=mcp_app.lifespan)
-
-    # Add authentication middleware
-    @app.middleware("http")
-    async def auth_middleware(request: Request, call_next):
-        await authenticate_request(request)
-        response = await call_next(request)
-        return response
-
+    
+    # Add authentication middleware if API key is configured
+    if MCP_API_KEY:
+        @app.middleware("http")
+        async def auth_middleware(request, call_next):
+            # Skip authentication for tests
+            if os.getenv("PYTEST_CURRENT_TEST"):
+                response = await call_next(request)
+                return response
+            
+            # Only authenticate /mcp/ endpoints
+            if request.url.path.startswith("/mcp"):
+                auth_header = request.headers.get("Authorization")
+                if not auth_header or not auth_header.startswith("Bearer "):
+                    from fastapi import HTTPException
+                    raise HTTPException(status_code=401, detail="Invalid Authorization header")
+                
+                provided_key = auth_header[7:]
+                if provided_key != MCP_API_KEY:
+                    from fastapi import HTTPException
+                    raise HTTPException(status_code=401, detail="Invalid API key")
+            
+            response = await call_next(request)
+            return response
+    
+    # Mount MCP app
     app.mount("/mcp", mcp_app)
-
+    
     @app.api_route("/mcp", methods=["GET", "POST"])
-    async def mcp_redirect() -> RedirectResponse:
-        """Redirect ``/mcp`` to ``/mcp/`` preserving the request method."""
+    async def mcp_redirect():
+        """Redirect /mcp to /mcp/ preserving the request method."""
         return RedirectResponse(url="/mcp/", status_code=307)
-
+    
     return app
-
 
 app = create_app()
 
@@ -174,6 +107,7 @@ app = create_app()
 
 
 @mcp.tool
+# @paginated_endpoint  # TODO: Fix compatibility with FastMCP
 async def list_contacts(
     page: int = 1,
     per_page: int = 50,
@@ -211,6 +145,7 @@ async def search_contacts(
 
 
 @mcp.tool
+# @paginated_endpoint  # TODO: Fix compatibility with FastMCP
 async def list_recent_contacts(
     page: int = 1,
     per_page: int = 50,
@@ -228,6 +163,7 @@ async def list_recent_contacts(
 
 
 @mcp.tool
+# @paginated_endpoint  # TODO: Fix compatibility with FastMCP
 async def list_opportunities(
     page: int = 1,
     per_page: int = 50,
@@ -274,6 +210,7 @@ async def list_open_opportunities(
 
 # Cases/Support
 @mcp.tool
+# @paginated_endpoint  # TODO: Fix compatibility with FastMCP
 async def list_cases(
     page: int = 1,
     per_page: int = 50,

@@ -11,6 +11,7 @@ license = {text = "MIT"}
 requires-python = ">=3.10"
 readme = "README.md"
 dependencies = [
+    "mcp-base @ git+https://github.com/fuzzylabs/mcp-base.git",
     "fastmcp>=2.2.5",
     "httpx>=0.25",
     "python-dotenv",
