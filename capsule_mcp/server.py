@@ -9,6 +9,7 @@ Run locally:
 """
 
 import os
+from datetime import datetime, timedelta
 from typing import Any, Dict
 
 from dotenv import load_dotenv
@@ -453,7 +454,7 @@ async def get_contact(contact_id: int) -> Dict[str, Any]:
 @mcp.tool
 async def get_opportunity(opportunity_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific opportunity."""
-    return await capsule_request("GET", f"opportunities/{opportunity_id}", params={"embed":"tags"})
+    return await capsule_request("GET", f"opportunities/{opportunity_id}", params={"embed":"tags,fields"})
 
 
 # Configuration Tools
@@ -513,6 +514,155 @@ async def list_categories(
 async def list_currencies() -> Dict[str, Any]:
     """Return a list of supported currencies."""
     return await capsule_request("GET", "currencies")
+
+
+# Project Calculation Tools
+async def calculate_sold_project_days(calculation_date: str) -> Dict[str, Any]:
+    """Calculate engineer days used in the month of the given date across all won opportunities.
+    
+    This function:
+    1. Fetches all won opportunities with custom fields
+    2. Extracts KO Date (kick-off date) from custom fields  
+    3. Extracts Engineer Days and Number of Engineers from Pricing data tags
+    4. Calculates project duration including weekends (days * 7/5)
+    5. Determines overlap between project timeline and target month
+    6. Returns total engineer days used in the target month
+    
+    Args:
+        calculation_date: Date in ISO format (YYYY-MM-DD) to determine target month
+        
+    Returns:
+        Dict containing total engineer days and breakdown by opportunity
+    """
+    try:
+        # Parse and validate the calculation date
+        calc_date = datetime.fromisoformat(calculation_date.replace('Z', '+00:00'))
+        target_month = calc_date.month
+        target_year = calc_date.year
+    except ValueError:
+        return {"error": "Invalid date format. Use YYYY-MM-DD format."}
+    
+    # Get first and last day of target month
+    month_start = datetime(target_year, target_month, 1)
+    if target_month == 12:
+        month_end = datetime(target_year + 1, 1, 1) - timedelta(days=1)
+    else:
+        month_end = datetime(target_year, target_month + 1, 1) - timedelta(days=1)
+    
+    total_days = 0.0
+    opportunity_breakdown = []
+    
+    # Fetch all won opportunities with custom fields and tags
+    page = 1
+    per_page = 100
+    
+    while True:
+        try:
+            # Get won opportunities using filters
+            filter_data = {
+                "filter": {
+                    "conditions": [
+                        {"field": "milestone", "operator": "is", "value": "won"}
+                    ]
+                },
+                "page": page,
+                "perPage": per_page,
+            }
+            
+            response = await capsule_request(
+                "POST", "opportunities/filters/results", json=filter_data,
+                params={"embed": "fields,tags"}
+            )
+            
+            opportunities = response.get("opportunities", [])
+            if not opportunities:
+                break
+                
+            for opp in opportunities:
+                # Get detailed opportunity with fields and tags
+                opp_detail = await capsule_request(
+                    "GET", f"opportunities/{opp['id']}",
+                    params={"embed": "tags,fields"}
+                )
+
+                # Extract KO Date from custom fields
+                ko_date = None
+                fields = opp_detail.get("opportunity", {})
+                fields = fields.get("fields", [])
+                for field in fields:
+                    if field.get("definition", {}).get("name") == "KO Date":
+                        ko_date_str = field.get("value")
+                        if ko_date_str:
+                            ko_date = datetime.fromisoformat(ko_date_str.replace('Z', '+00:00'))
+                        break
+
+                if not ko_date:
+                    continue
+
+                # Extract Engineer Days and Number of Engineers from Pricing tag
+                engineer_days = None
+                num_engineers = None
+
+
+                for field in opp_detail.get("opportunity").get("fields"):
+                    field_name = field.get("definition", {}).get("name")
+                    if field_name == "Engineer Days":
+                        try:
+                            engineer_days = float(field.get("value", 0))
+                        except (ValueError, TypeError):
+                            pass
+                    elif field_name == "Number of Engineers":
+                        try:
+                            num_engineers = float(field.get("value", 1))
+                        except (ValueError, TypeError):
+                            pass
+
+                if engineer_days is None or num_engineers is None or num_engineers == 0:
+                    continue
+
+                # Calculate project duration including weekends
+                project_duration_days = (engineer_days / num_engineers) * (7.0 / 5.0)
+                project_end = ko_date + timedelta(days=project_duration_days)
+
+                # Calculate overlap with target month
+                overlap_start = max(ko_date, month_start)
+                overlap_end = min(project_end, month_end + timedelta(days=1))
+
+                if overlap_start < overlap_end:
+                    # Calculate proportion of project in target month
+                    overlap_days = (overlap_end - overlap_start).days
+                    total_project_days = (project_end - ko_date).days
+
+                    if total_project_days > 0:
+                        proportion = overlap_days / total_project_days
+                        days_in_month = engineer_days * proportion
+                        total_days += days_in_month
+
+                        opportunity_breakdown.append({
+                            "opportunity_id": opp["id"],
+                            "opportunity_name": opp.get("name", "Unknown"),
+                            "ko_date": ko_date.isoformat(),
+                            "engineer_days": engineer_days,
+                            "num_engineers": num_engineers,
+                            "project_duration_days": project_duration_days,
+                            "days_in_target_month": days_in_month
+                        })
+
+
+            # Check if we have more pages
+            if len(opportunities) < per_page:
+                break
+            page += 1
+            
+        except Exception as e:
+            return {"error": f"Failed to fetch opportunities: {str(e)}"}
+    
+    return {
+        "target_month": f"{target_year}-{target_month:02d}",
+        "total_engineer_days": round(total_days, 2),
+        "opportunities_count": len(opportunity_breakdown),
+        "opportunities": opportunity_breakdown
+    }
 
 
 # ---------------------------------------------------------------------------
