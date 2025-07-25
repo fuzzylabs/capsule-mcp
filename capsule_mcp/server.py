@@ -517,6 +517,7 @@ async def list_currencies() -> Dict[str, Any]:
 
 
 # Project Calculation Tools
+@mcp.tool
 async def calculate_sold_project_days(calculation_date: str) -> Dict[str, Any]:
     """Calculate engineer days used in the month of the given date across all won opportunities.
     
