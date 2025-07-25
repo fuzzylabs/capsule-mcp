@@ -236,8 +236,8 @@ async def list_opportunities(
     """Return a paginated list of opportunities.
 
     Args:
-        page: Page number (default: 1)
-        per_page: Number of opportunities per page (default: 50, max: 100)
+        page:
+        rtunities per page (default: 50, max: 100)
         since: Only return opportunities modified since this date (ISO8601 format, e.g. '2024-01-01T00:00:00Z')
     """
     params = {
@@ -453,7 +453,7 @@ async def get_contact(contact_id: int) -> Dict[str, Any]:
 @mcp.tool
 async def get_opportunity(opportunity_id: int) -> Dict[str, Any]:
     """Get detailed information about a specific opportunity."""
-    return await capsule_request("GET", f"opportunities/{opportunity_id}")
+    return await capsule_request("GET", f"opportunities/{opportunity_id}", params={"embed":"tags"})
 
 
 # Configuration Tools
