@@ -232,6 +232,7 @@ async def list_opportunities(
     page: int = 1,
     per_page: int = 50,
     since: str = None,
+    embed: str = "tags,fields",
 ) -> Dict[str, Any]:
     """Return a paginated list of opportunities.
 
@@ -239,6 +240,7 @@ async def list_opportunities(
         page: Page number (default: 1)
         per_page: Number of opportunities per page (default: 50, max: 100)
         since: Only return opportunities modified since this date (ISO8601 format, e.g. '2024-01-01T00:00:00Z')
+        embed: Comma-separated list of data to embed (default: "tags,fields")
     """
     params = {
         "page": page,
@@ -246,6 +248,8 @@ async def list_opportunities(
     }
     if since:
         params["since"] = since
+    if embed:
+        params["embed"] = embed
 
     return await capsule_request("GET", "opportunities", params=params)
 
@@ -278,6 +282,7 @@ async def list_cases(
     page: int = 1,
     per_page: int = 50,
     since: str = None,
+    embed: str = "tags,fields",
 ) -> Dict[str, Any]:
     """Return a paginated list of support cases.
 
@@ -285,6 +290,7 @@ async def list_cases(
         page: Page number (default: 1)
         per_page: Number of cases per page (default: 50, max: 100)
         since: Only return cases modified since this date (ISO8601 format)
+        embed: Comma-separated list of data to embed (default: "tags,fields")
     """
     params = {
         "page": page,
@@ -292,6 +298,8 @@ async def list_cases(
     }
     if since:
         params["since"] = since
+    if embed:
+        params["embed"] = embed
 
     return await capsule_request("GET", "kases", params=params)
 
@@ -308,9 +316,15 @@ async def search_cases(
 
 
 @mcp.tool
-async def get_case(case_id: int) -> Dict[str, Any]:
-    """Get detailed information about a specific support case."""
-    return await capsule_request("GET", f"kases/{case_id}")
+async def get_case(case_id: int, embed: str = "tags,fields") -> Dict[str, Any]:
+    """Get detailed information about a specific support case.
+    
+    Args:
+        case_id: The ID of the support case to retrieve
+        embed: Comma-separated list of data to embed (default: "tags,fields")
+    """
+    params = {"embed": embed} if embed else {}
+    return await capsule_request("GET", f"kases/{case_id}", params=params)
 
 
 # Tasks
@@ -379,6 +393,7 @@ async def list_projects(
     page: int = 1,
     per_page: int = 50,
     since: str = None,
+    embed: str = "tags,fields,opportunity",
 ) -> Dict[str, Any]:
     """Return a paginated list of projects.
 
@@ -386,6 +401,7 @@ async def list_projects(
         page: Page number (default: 1)
         per_page: Number of projects per page (default: 50, max: 100)
         since: Only return projects modified since this date (ISO8601 format)
+        embed: Comma-separated list of data to embed (default: "tags,fields,opportunity")
     """
     params = {
         "page": page,
@@ -393,14 +409,22 @@ async def list_projects(
     }
     if since:
         params["since"] = since
+    if embed:
+        params["embed"] = embed
 
     return await capsule_request("GET", "projects", params=params)
 
 
 @mcp.tool
-async def get_project(project_id: int) -> Dict[str, Any]:
-    """Get detailed information about a specific project."""
-    return await capsule_request("GET", f"projects/{project_id}")
+async def get_project(project_id: int, embed: str = "tags,fields,opportunity") -> Dict[str, Any]:
+    """Get detailed information about a specific project.
+    
+    Args:
+        project_id: The ID of the project to retrieve
+        embed: Comma-separated list of data to embed (default: "tags,fields,opportunity")
+    """
+    params = {"embed": embed} if embed else {}
+    return await capsule_request("GET", f"projects/{project_id}", params=params)
 
 
 # Tags
@@ -451,10 +475,15 @@ async def get_contact(contact_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool
-async def get_opportunity(opportunity_id: int) -> Dict[str, Any]:
-    """Get detailed information about a specific opportunity."""
-    return await capsule_request("GET", f"opportunities/{opportunity_id}")
-
+async def get_opportunity(opportunity_id: int, embed: str = "tags,fields") -> Dict[str, Any]:
+    """Get detailed information about a specific opportunity.
+    
+    Args:
+        opportunity_id: The ID of the opportunity to retrieve
+        embed: Comma-separated list of data to embed (default: "tags,fields")
+    """
+    params = {"embed": embed} if embed else {}
+    return await capsule_request("GET", f"opportunities/{opportunity_id}", params=params)
 
 # Configuration Tools
 @mcp.tool
