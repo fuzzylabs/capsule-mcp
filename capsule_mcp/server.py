@@ -282,7 +282,7 @@ async def list_cases(
     page: int = 1,
     per_page: int = 50,
     since: str = None,
-    embed: str = "tags,fields",
+    embed: str = "tags,fields,opportunity",
 ) -> Dict[str, Any]:
     """Return a paginated list of support cases.
 
@@ -290,7 +290,8 @@ async def list_cases(
         page: Page number (default: 1)
         per_page: Number of cases per page (default: 50, max: 100)
         since: Only return cases modified since this date (ISO8601 format)
-        embed: Comma-separated list of data to embed (default: "tags,fields")
+        embed: Comma-separated list of data to embed
+            (default: "tags,fields,opportunity")
     """
     params = {
         "page": page,
@@ -316,12 +317,13 @@ async def search_cases(
 
 
 @mcp.tool
-async def get_case(case_id: int, embed: str = "tags,fields") -> Dict[str, Any]:
+async def get_case(case_id: int, embed: str = "tags,fields,opportunity") -> Dict[str, Any]:
     """Get detailed information about a specific support case.
     
     Args:
         case_id: The ID of the support case to retrieve
-        embed: Comma-separated list of data to embed (default: "tags,fields")
+        embed: Comma-separated list of data to embed
+            (default: "tags,fields,opportunity")
     """
     params = {"embed": embed} if embed else {}
     return await capsule_request("GET", f"kases/{case_id}", params=params)
