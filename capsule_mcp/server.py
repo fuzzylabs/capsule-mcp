@@ -9,9 +9,12 @@ Run locally:
 """
 
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Literal
 
 from dotenv import load_dotenv
+
+# Type definitions
+EntityType = Literal["opportunities", "parties", "kases"]
 
 import httpx
 from fastapi import FastAPI, Request, HTTPException
@@ -406,21 +409,33 @@ async def get_project(project_id: int) -> Dict[str, Any]:
 # Tags
 @mcp.tool
 async def list_tags(
+    entity: EntityType = "opportunities",
     page: int = 1,
     per_page: int = 50,
 ) -> Dict[str, Any]:
-    """Return a paginated list of tags."""
+    """Return a paginated list of tags for a specific entity.
+    
+    Args:
+        entity: Entity type to get tags for. Must be one of: "opportunities", "parties", "kases" (default: "opportunities")
+        page: Page number (default: 1)
+        per_page: Number of tags per page (default: 50, max: 100)
+    """
     params = {
         "page": page,
         "perPage": per_page,
     }
-    return await capsule_request("GET", "tags", params=params)
+    return await capsule_request("GET", f"{entity}/tags", params=params)
 
 
 @mcp.tool
-async def get_tag(tag_id: int) -> Dict[str, Any]:
-    """Get detailed information about a specific tag."""
-    return await capsule_request("GET", f"tags/{tag_id}")
+async def get_tag(tag_id: int, entity: EntityType = "opportunities") -> Dict[str, Any]:
+    """Get detailed information about a specific tag for an entity.
+    
+    Args:
+        tag_id: The ID of the tag to retrieve
+        entity: Entity type the tag belongs to. Must be one of: "opportunities", "parties", "kases" (default: "opportunities")
+    """
+    return await capsule_request("GET", f"{entity}/tags/{tag_id}")
 
 
 # Users
